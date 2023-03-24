@@ -331,6 +331,12 @@ if __name__ == "__main__":
     parser.add_argument("--entity_bsz", type=int, default=512, help="the batch size")
     parser.add_argument("--use_gpu_index", action="store_true", help="use gpu index?")
     parser.add_argument(
+        "--type_loss",
+        type=str,
+        choices=["log_sum", "sum_log", "sum_log_nce", "max_min"],
+        help="type of multi-label loss ?",
+    )
+    parser.add_argument(
         "--fp16",
         action="store_true",
         help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) "
@@ -357,4 +363,4 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
     main(args)
 
-    # python ./simple.py --model ./models/retriever.pt --data_dir ./models/data/input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0
+    # python ./simple.py --model ./models/retriever.pt --type_loss sum_log_nce --data_dir ./models/data/input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0
