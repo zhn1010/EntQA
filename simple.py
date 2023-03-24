@@ -225,6 +225,7 @@ def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
             "offset": sample["offset"],
             "candidate_titles": candidate_titles,
         }
+        print(item)
         fout.write("%s\n" % json.dumps(item))
     fout.close()
 
