@@ -204,7 +204,7 @@ def get_hard_negative(
     return hard_indices, scores
 
 
-def save_candidates(samples, topk_candidates, entity_map, out_dir):
+def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
     out_path = os.path.join(out_dir, "result.json")
@@ -218,8 +218,10 @@ def save_candidates(samples, topk_candidates, entity_map, out_dir):
             "doc_id": sample["doc_id"],
             "mention_idx": i,
             "candidates": m_candidates,
-            "title": sample["title"],
+            "title_ids": sample["title"],
             "token_ids": sample["text"],
+            "title_text": tokenizer.decode(sample["title"]),
+            "token_text": tokenizer.decode(sample["text"]),
             "offset": sample["offset"],
             "candidate_titles": candidate_titles,
         }
@@ -264,7 +266,7 @@ def main(args):
     all_cands_embeds = np.load(args.cands_embeds_path)
     logger.log("getting test mention embeddings ...")
     samples_loader, entity_loader = get_loaders(
-        samples,
+        tokenized_samples,
         entities,
         args.max_len,
         tokenizer,
@@ -276,7 +278,9 @@ def main(args):
     topk_candidates, scores_k = get_hard_negative(
         test_mention_embeds, all_cands_embeds, args.k, 0, args.use_gpu_index
     )
-    save_candidates(samples, topk_candidates, entity_map, args.out_dir)
+    save_candidates(
+        tokenizer, tokenized_samples, topk_candidates, entity_map, args.out_dir
+    )
 
 
 if __name__ == "__main__":
@@ -362,4 +366,4 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
     main(args)
 
-    # python ./simple.py --model ./models/retriever.pt --type_loss sum_log_nce --data_dir ./models/data/input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0
+    # python ./simple.py --model ./models/retriever.pt --type_loss sum_log_nce --data_dir ./input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0
