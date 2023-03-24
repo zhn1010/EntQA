@@ -253,7 +253,6 @@ def main(args):
     entity_map = get_entity_map(entities)
 
     model = load_model(
-        False,
         config["biencoder_config"],
         args.model,
         device,
