@@ -223,7 +223,7 @@ def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
             "offset": sample["offset"],
-            "candidate_titles": candidate_titles,
+            "candidate_titles": candidate_titles.tolist(),
         }
         print(item)
         fout.write("%s\n" % json.dumps(item))
