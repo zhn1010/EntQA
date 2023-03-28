@@ -336,7 +336,7 @@ def main(args):
         device,
         loader,
         args.k,
-        entities,
+        samples,
         args.do_rerank,
         args.filter_span,
         args.no_multi_ents,
