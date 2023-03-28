@@ -407,6 +407,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--B", type=int, default=16, help="batch size [%(default)d]")
     parser.add_argument(
+        "--gpus", default="", type=str, help="GPUs separated by comma [%(default)s]"
+    )
+    parser.add_argument(
         "--thresd",
         type=float,
         default=0.05,
@@ -419,4 +422,4 @@ if __name__ == "__main__":
 
     main(args)
 
-# python ./simple_reader.py  --model ./models/reader.pt   --data_dir ./models/retriever_output  --C 100  --B 32  --L 180  --gpus 0  --lr 1e-5 --thresd  0.05  --k 3  --stride 16 --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank  --use_title  --results_dir ./models/reader_output/  --kb_dir ./models/data/kb/
+# python ./simple_reader.py  --model ./models/reader.pt   --data_dir ./models/retriever_output  --C 100  --B 32  --L 180  --gpus 0  --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank  --use_title  --results_dir ./models/reader_output/  --kb_dir ./models/data/kb/
