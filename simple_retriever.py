@@ -207,7 +207,7 @@ def get_hard_negative(
 def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    out_path = os.path.join(out_dir, "result.json")
+    out_path = os.path.join(out_dir, "retriever_result.jsonl")
     entity_titles = np.array(list(entity_map.keys()))
     fout = open(out_path, "w")
     for i in range(len(samples)):
@@ -314,12 +314,6 @@ if __name__ == "__main__":
         "--clip", type=float, default=1, help="gradient clipping [%(default)g]"
     )
     parser.add_argument(
-        "--logging_steps",
-        type=int,
-        default=1000,
-        help="num logging steps [%(default)d]",
-    )
-    parser.add_argument(
         "--gpus", default="", type=str, help="GPUs separated by comma [%(default)s]"
     )
     parser.add_argument(
@@ -367,4 +361,4 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
     main(args)
 
-    # python ./simple.py --model ./models/retriever.pt --type_loss sum_log_nce --data_dir ./input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0
+    # python ./simple_retriever.py --model ./models/retriever.pt --type_loss sum_log_nce --data_dir ./input/ --kb_dir ./models/data/kb/ --k 100 --num_cands 64  --pretrained_path ./models/  --max_len 42  --mention_bsz 512 --entity_bsz 512  --B 4  --rands_ratio 0.9 --logging_step 100 --out_dir ./models/retriever_output --cands_embeds_path ./models/candidate_embeds.npy --blink  --use_title --gpus 0

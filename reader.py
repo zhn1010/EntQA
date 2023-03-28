@@ -6,13 +6,15 @@ from loss import MultiLabelLoss
 
 # Reader model
 class Reader(nn.Module):
-
-    def __init__(self, encoder,
-                 type_span_loss,
-                 do_rerank,
-                 type_rank_loss,
-                 max_answer_len,
-                 max_passage_len):
+    def __init__(
+        self,
+        encoder,
+        type_span_loss,
+        do_rerank,
+        type_rank_loss,
+        max_answer_len,
+        max_passage_len,
+    ):
         super(Reader, self).__init__()
         self.encoder = encoder
         self.span_loss_fct = MultiLabelLoss(type_span_loss)
@@ -27,54 +29,60 @@ class Reader(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        self.qa_outputs.weight.data.normal_(mean=0.0,
-                                            std=self.encoder.config.initializer_range)
-        self.qa_classifier.weight.data.normal_(mean=0.0,
-                                               std=self.encoder.config.initializer_range)
+        self.qa_outputs.weight.data.normal_(
+            mean=0.0, std=self.encoder.config.initializer_range
+        )
+        self.qa_classifier.weight.data.normal_(
+            mean=0.0, std=self.encoder.config.initializer_range
+        )
         self.qa_outputs.bias.data.zero_()
         self.qa_classifier.bias.data.zero_()
 
-    def get_batch_probs(self,
-                        start_logits,
-                        end_logits,
-                        rank_logits=None):
+    def get_batch_probs(self, start_logits, end_logits, rank_logits=None):
 
         # B x C x max_passage_len
         start_probs = start_logits.log_softmax(-1)
         # B x C x max_passage_len
         end_probs = end_logits.log_softmax(-1)
         # B x C x L x 1 + B x C x 1 x L + B x C x 1 x 1 --> B x C x L x L
-        mention_probs = start_probs.unsqueeze(-1) + end_probs.unsqueeze(
-            -2)
+        mention_probs = start_probs.unsqueeze(-1) + end_probs.unsqueeze(-2)
         if self.do_rerank:
             # B x C
             rank_probs = rank_logits.log_softmax(-1)
-            mention_probs = mention_probs + rank_probs.unsqueeze(-1).unsqueeze(
-                -1)
+            mention_probs = mention_probs + rank_probs.unsqueeze(-1).unsqueeze(-1)
         # B x C x max_passage_len x max_passage_len
-        mention_probs = mention_probs.exp().triu(0).tril(self.max_answer_len
-                                                         - 1)[:, :,
-                        :self.max_passage_len, :self.max_passage_len]
+        mention_probs = (
+            mention_probs.exp()
+            .triu(0)
+            .tril(self.max_answer_len - 1)[
+                :, :, : self.max_passage_len, : self.max_passage_len
+            ]
+        )
         if self.do_rerank:
             return mention_probs, rank_logits
         return mention_probs
 
-    def forward(self, input_ids,
-                attention_mask,
-                token_type_ids,
-                answer_mask,
-                passage_labels=None,
-                start_labels=None,
-                end_labels=None):
+    def forward(
+        self,
+        input_ids,
+        attention_mask,
+        token_type_ids,
+        answer_mask,
+        passage_labels=None,
+        start_labels=None,
+        end_labels=None,
+    ):
         # batchsize, number of candidates per question, length
         B, C, L = input_ids.size()
         input_ids = input_ids.view(-1, L)
         attention_mask = attention_mask.view(-1, L)
         token_type_ids = token_type_ids.view(-1, L)
         # BC x L x d
-        last_hiddens = self.encoder(input_ids=input_ids,
-                                    attention_mask=attention_mask,
-                                    token_type_ids=token_type_ids)[0]
+        last_hiddens = self.encoder(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+        )[0]
         span_logits = self.qa_outputs(last_hiddens)
         start_logits, end_logits = span_logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1).view(B, C, L)
@@ -82,8 +90,7 @@ class Reader(nn.Module):
         rank_logits = None
         if self.do_rerank:
             rank_logits = self.qa_classifier(last_hiddens[:, 0, :]).view(B, C)
-        start_logits = start_logits.masked_fill(~(answer_mask.bool()),
-                                                -10000)
+        start_logits = start_logits.masked_fill(~(answer_mask.bool()), -10000)
         end_logits = end_logits.masked_fill(~(answer_mask.bool()), -10000)
         if self.training:
             start_loss = self.span_loss_fct(start_logits, start_labels)
@@ -97,8 +104,7 @@ class Reader(nn.Module):
         return self.get_batch_probs(start_logits, end_logits, rank_logits)
 
 
-def get_top_spans(_mention_probs,
-                  k=10, filter_spans=True):
+def get_top_spans(_mention_probs, k=10, filter_spans=True):
     """
     :param _mention_probs: max_passage_len x max_passage_len
     :param k: top k spans
@@ -115,11 +121,11 @@ def get_top_spans(_mention_probs,
         end = end.long()
         if start.item() == 0 and end.item() == 0:
             break
-        if filter_spans and any(start.item() <= selected_start <=
-                                selected_end <= end.item()
-                                or selected_start <= start.item() <= end.item() <= selected_end
-                                for selected_start, selected_end, _ in
-                                selected_spans):
+        if filter_spans and any(
+            start.item() <= selected_start <= selected_end <= end.item()
+            or selected_start <= start.item() <= end.item() <= selected_end
+            for selected_start, selected_end, _ in selected_spans
+        ):
             continue
         selected_spans.append([start.item(), end.item(), s.item()])
         if len(selected_spans) == k:
@@ -128,10 +134,7 @@ def get_top_spans(_mention_probs,
     return selected_spans
 
 
-def get_predicts(mention_probs,
-                 k=10,
-                 filter_span=True,
-                 no_multi_ents=False):
+def get_predicts(mention_probs, k=10, filter_span=True, no_multi_ents=False):
     """
     :param mention_probs:  N x C x max_passage_len x max_passage_len
     :param k: top k spans for each candidate
@@ -160,12 +163,12 @@ def get_predicts(mention_probs,
             #  prevent multiple entities for the same mention span
             if no_multi_ents:
                 candidate_predicts = candidate_predicts[
-                    candidate_predicts[:, -1].argsort(0, True)].numpy()
-                unique_ids = np.unique(candidate_predicts[:, 1:3],
-                                       axis=0,
-                                       return_index=True)[1]
-                candidate_predicts = torch.tensor(candidate_predicts[
-                                                      unique_ids])
+                    candidate_predicts[:, -1].argsort(0, True)
+                ].numpy()
+                unique_ids = np.unique(
+                    candidate_predicts[:, 1:3], axis=0, return_index=True
+                )[1]
+                candidate_predicts = torch.tensor(candidate_predicts[unique_ids])
             # entity, start, end,score
             results.append(candidate_predicts)
         else:
@@ -182,7 +185,7 @@ def prune_predicts(predicts, threshold):
             results.append([])
         else:
             cand_probs = cand_predicts[:, -1]
-            selection = (cand_probs > threshold)
+            selection = cand_probs > threshold
             cand_results = cand_predicts[:, :-1].long()[selection].tolist()
             results.append(cand_results)
     return results
