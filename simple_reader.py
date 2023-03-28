@@ -252,7 +252,7 @@ def get_raw_results(
     else:
         ranking_scores = None
         ranking_labels = None
-    return raw_predicts, ranking_scores, ranking_labels
+    return raw_predicts  # , ranking_scores, ranking_labels
 
 
 def transform_predicts(preds, entities, samples):
