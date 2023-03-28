@@ -410,6 +410,9 @@ if __name__ == "__main__":
         "--gpus", default="", type=str, help="GPUs separated by comma [%(default)s]"
     )
     parser.add_argument(
+        "--seed", type=int, default=42, help="random seed [%(default)d]"
+    )
+    parser.add_argument(
         "--thresd",
         type=float,
         default=0.05,
