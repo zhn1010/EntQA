@@ -238,6 +238,7 @@ def get_raw_results(
             batch_p = batch_p.cpu()
             ps.append(batch_p)
             if do_rerank:
+                print(f"len(batch): {len(batch)}")
                 ranking_scores.append(rank_logits_b.cpu())
                 ranking_labels.append(batch[4].cpu())
         ps = torch.cat(ps, 0)
