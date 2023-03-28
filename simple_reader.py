@@ -146,7 +146,6 @@ class ReaderData(Dataset):
         if self.use_title:
             title = sample["title_ids"]
         token_ids = sample["token_ids"]
-        passage_labels = sample["passage_labels"][: self.max_num_candidates]
         if self.use_title:
             title_ids = self.TT + title
         else:
@@ -160,7 +159,6 @@ class ReaderData(Dataset):
         type_marks = torch.zeros((self.max_num_candidates, self.max_len)).long()
         attention_masks = torch.zeros((self.max_num_candidates, self.max_len)).long()
         answer_masks = torch.zeros((self.max_num_candidates, self.max_len)).long()
-        passage_labels = torch.tensor(passage_labels).long()
         for i, candidate_ids in enumerate(candidates_ids):
             candidate_ids = candidate_ids.tolist()
             candidate_masks = candidates_masks[i].tolist()
@@ -193,7 +191,6 @@ class ReaderData(Dataset):
             attention_masks,
             type_marks,
             answer_masks,
-            passage_labels,
         )
 
 
