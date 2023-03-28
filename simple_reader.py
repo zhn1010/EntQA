@@ -243,6 +243,8 @@ def get_raw_results(
                 ranking_labels.append(batch[4].cpu())
         ps = torch.cat(ps, 0)
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
+    print("len(raw_predicts)", len(raw_predicts))
+    print("len(samples)", len(samples))
     assert len(raw_predicts) == len(samples)
     if do_rerank:
         ranking_scores = torch.cat(ranking_scores, 0)
