@@ -542,7 +542,7 @@ def main(args):
 
     del retriever_model
     del all_cands_embeds
-
+    torch.cuda.empty_cache()
     # -------------------------------------- READER ------------------------------------------- #
 
     reader_model, reader_tokenizer = load_reader_model(
