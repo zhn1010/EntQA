@@ -540,6 +540,9 @@ def main(args):
         retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
     )
 
+    del retriever_model
+    del all_cands_embeds
+
     # -------------------------------------- READER ------------------------------------------- #
 
     reader_model, reader_tokenizer = load_reader_model(
