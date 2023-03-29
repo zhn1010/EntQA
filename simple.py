@@ -14,23 +14,26 @@ import torch.nn as nn
 import torch
 import numpy as np
 import faiss
+from collections import Counter, defaultdict
 
 
 def load_data(data_dir):
-    samples = []
+    result = []
     with open(os.path.join(data_dir, "samples.jsonl")) as f:
         for line in f:
-            samples.append(json.loads(line))
-    return samples
+            result.append(json.loads(line))
+    return result
 
 
-def tokenize_original_text(processed_raw_data, tokenizer, args):
+def tokenize_original_text(raw_data, tokenizer, args):
     data = []
-    for d in processed_raw_data:
+    tokenized_raw_data = {}
+    for d in raw_data:
         orig_text = d["text"]
         orig_title = d["title"]
         text = tokenizer.tokenize(orig_text)
         doc_id = d["doc_id"]
+        tokenized_raw_data[doc_id] = {"orig_text": orig_text, "tokenized_text": text}
         text_ids = tokenizer.convert_tokens_to_ids(text)
         title_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(orig_title))
 
@@ -60,7 +63,7 @@ def tokenize_original_text(processed_raw_data, tokenizer, args):
                         "offset": begin,
                     }
                 )
-    return data
+    return data, tokenized_raw_data
 
 
 def load_entities(kb_dir):
@@ -459,8 +462,8 @@ def transform_predicts(preds, entities, samples):
 
 
 # save passage level results
-def save_results(predicts, samples, results_dir):
-    save_path = os.path.join(results_dir, "reader_results.jsonl")
+def get_sample_results(predicts, samples):
+    # save_path = os.path.join(results_dir, "reader_results.jsonl")
     results = []
     for predict, sample in zip(predicts, samples):
         result = {}
@@ -469,6 +472,59 @@ def save_results(predicts, samples, results_dir):
         result["text"] = sample["token_text"]
         result["predicts"] = predict
         results.append(result)
+    return results
+    # with open(save_path, "w") as f:
+    #     for r in results:
+    #         f.write("%s\n" % json.dumps(r))
+
+
+def get_sample_docs(sample_results, tokenized_raw_data, entity_map):
+    results = {}
+    tuple_list = []
+    for sample in sample_results:
+        offset = sample["offset"]
+        p = sample["predicts"]
+        if len(p) == 0:
+            continue
+        for r in p:
+            result = (sample["doc_id"], r[0] + offset, r[1] + offset, r[2])
+            tuple_list.append(result)
+    counted = Counter(tuple_list)
+    grouped_tuple_list = defaultdict(list)
+    for element, count in counted.items():
+        if count > 1:
+            doc_id, begin, end, entity_title = element
+            entity_text = " ".join(
+                tokenized_raw_data[doc_id]["tokenized_text"][begin - 1 : end]
+            ).replace("##", "")
+            grouped_tuple_list[doc_id].append(
+                (begin, end, entity_title, count, entity_map[entity_title], entity_text)
+            )
+    assert len(tokenized_raw_data) == len(grouped_tuple_list)
+    return grouped_tuple_list
+
+
+def save_doc_results(doc_results, tokenized_raw_data, out_dir):
+    save_path = os.path.join(out_dir, "reader_results.jsonl")
+    results = []
+    for doc_id, predictions in doc_results.items():
+        result = {}
+        result["doc_id"] = doc_id
+        result["text"] = tokenized_raw_data[doc_id]["orig_text"]
+        result["tokenized_text"] = tokenized_raw_data[doc_id]["tokenized_text"]
+        result["predicts"] = [
+            {
+                "start_token": item[0],
+                "end_token": item[1],
+                "entity_title": item[2],
+                "entity_id": item[4],
+                "text": item[5],
+                "count": item[3],
+            }
+            for item in predictions
+        ]
+        results.append(result)
+
     with open(save_path, "w") as f:
         for r in results:
             f.write("%s\n" % json.dumps(r))
@@ -481,12 +537,12 @@ def main(args):
     set_seeds(args)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     args.device = device
-    samples = load_data(args.data_dir)
+    raw_data = load_data(args.data_dir)
     biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
 
     retriever_tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
-    tokenized_samples = tokenize_original_text(
-        samples, retriever_tokenizer, {"instance_length": 32, "stride": 16}
+    tokenized_samples, tokenized_raw_data = tokenize_original_text(
+        raw_data, retriever_tokenizer, {"instance_length": 32, "stride": 16}
     )
     entities = load_entities(args.kb_dir)
     entity_map = get_entity_map(entities)
@@ -528,6 +584,7 @@ def main(args):
     del retriever_model
     del all_cands_embeds
     torch.cuda.empty_cache()
+
     # -------------------------------------- READER ------------------------------------------- #
 
     reader_model, reader_tokenizer = load_reader_model(
@@ -567,7 +624,9 @@ def main(args):
     )
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     predicts = transform_predicts(pruned_preds, entities, candidates)
-    save_results(predicts, candidates, args.out_dir)
+    sample_results = get_sample_results(predicts, candidates)  # , args.out_dir)
+    doc_results = get_sample_docs(sample_results, tokenized_raw_data, entity_map)
+    save_doc_results(doc_results, tokenized_raw_data, args.out_dir)
 
 
 if __name__ == "__main__":
@@ -693,4 +752,4 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
     main(args)
 
-    # python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/reader_retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 32  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
+# python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/reader_retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 5  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
