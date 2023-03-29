@@ -441,14 +441,17 @@ def get_reader_loaders(
 
 
 def get_raw_results(
-    model, device, loader, k, samples, filter_span=True, no_multi_ents=False
+    model, device, loader, k, samples, filter_span=True, no_multi_ents=False, do_rerank
 ):
     model.eval()
     ps = []
     with torch.no_grad():
         for _, batch in enumerate(loader):
             batch = tuple(t.to(device) for t in batch)
-            batch_p = model(*batch).detach()
+            if do_rerank:
+                batch_p, rank_logits_b = model(*batch)
+            else:
+                batch_p = model(*batch).detach()
             batch_p = batch_p.cpu()
             ps.append(batch_p)
         ps = torch.cat(ps, 0)
@@ -540,6 +543,7 @@ def main(args):
         retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
     )
 
+    del test_mention_embeds
     del retriever_model
     del all_cands_embeds
     torch.cuda.empty_cache()
@@ -578,6 +582,7 @@ def main(args):
         candidates,
         args.filter_span,
         args.no_multi_ents,
+        args.do_rerank
     )
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     predicts = transform_predicts(pruned_preds, entities, candidates)
