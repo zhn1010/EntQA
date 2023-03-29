@@ -554,7 +554,7 @@ def main(args):
     )
     loader = get_reader_loaders(
         reader_tokenizer,
-        samples,
+        candidates,
         entities,
         args.L,
         args.C,
@@ -572,13 +572,13 @@ def main(args):
         device,
         loader,
         args.k,
-        samples,
+        candidates,
         args.filter_span,
         args.no_multi_ents,
     )
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
-    predicts = transform_predicts(pruned_preds, entities, samples)
-    save_results(predicts, samples, args.results_dir)
+    predicts = transform_predicts(pruned_preds, entities, candidates)
+    save_results(predicts, candidates, args.results_dir)
 
 
 if __name__ == "__main__":
