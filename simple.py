@@ -228,32 +228,6 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
     return candidates
 
 
-def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
-    # save results for reader training
-    assert len(samples) == len(topk_candidates)
-    out_path = os.path.join(out_dir, "retriever_result.jsonl")
-    entity_titles = np.array(list(entity_map.keys()))
-    fout = open(out_path, "w")
-    for i in range(len(samples)):
-        sample = samples[i]
-        m_candidates = topk_candidates[i].tolist()
-        candidate_titles = entity_titles[m_candidates]
-        item = {
-            "doc_id": sample["doc_id"],
-            "mention_idx": i,
-            "offset": sample["offset"],
-            "candidates": m_candidates,
-            "title_ids": sample["title"],
-            "token_ids": sample["text"],
-            "title_text": tokenizer.decode(sample["title"]),
-            "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": candidate_titles.tolist(),
-        }
-        print(item)
-        fout.write("%s\n" % json.dumps(item))
-    fout.close()
-
-
 # --------------------------------- READER -------------------------------------#
 
 
@@ -593,7 +567,7 @@ def main(args):
     )
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     predicts = transform_predicts(pruned_preds, entities, candidates)
-    save_results(predicts, candidates, args.results_dir)
+    save_results(predicts, candidates, args.out_dir)
 
 
 if __name__ == "__main__":
