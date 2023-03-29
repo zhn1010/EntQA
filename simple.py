@@ -686,9 +686,6 @@ if __name__ == "__main__":
         help="get top-k spans per entity before top-p " "filtering",
     )
     parser.add_argument(
-        "--use_title", action="store_true", help="use title or use topic?"
-    )
-    parser.add_argument(
         "--C", type=int, default=64, help="max number of candidates [%(default)d]"
     )
     parser.add_argument(
@@ -707,4 +704,4 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
     main(args)
 
-    # python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 32  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
+    # python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/reader_retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 32  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
