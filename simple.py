@@ -441,7 +441,14 @@ def get_reader_loaders(
 
 
 def get_raw_results(
-    model, device, loader, k, samples, filter_span=True, no_multi_ents=False, do_rerank
+    model,
+    device,
+    loader,
+    k,
+    samples,
+    filter_span=True,
+    no_multi_ents=False,
+    do_rerank=True,
 ):
     model.eval()
     ps = []
@@ -582,7 +589,7 @@ def main(args):
         candidates,
         args.filter_span,
         args.no_multi_ents,
-        args.do_rerank
+        args.do_rerank,
     )
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     predicts = transform_predicts(pruned_preds, entities, candidates)
