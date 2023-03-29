@@ -542,8 +542,8 @@ def main(args):
 
     # -------------------------------------- READER ------------------------------------------- #
 
-    model, tokenizer = load_reader_model(
-        args.model,
+    reader_model, reader_tokenizer = load_reader_model(
+        args.reader_model,
         args.type_encoder,
         device,
         args.type_span_loss,
@@ -553,7 +553,7 @@ def main(args):
         args.max_passage_len,
     )
     loader = get_reader_loaders(
-        tokenizer,
+        reader_tokenizer,
         samples,
         entities,
         args.L,
@@ -561,14 +561,14 @@ def main(args):
         args.B,
         args.use_title,
     )
-    model.to(device)
+    reader_model.to(device)
     args.n_gpu = torch.cuda.device_count()
     dp = args.n_gpu > 1
     if dp:
-        model = nn.DataParallel(model)
-    model.eval()
+        reader_model = nn.DataParallel(reader_model)
+    reader_model.eval()
     raw_predicts = get_raw_results(
-        model,
+        reader_model,
         device,
         loader,
         args.k,
