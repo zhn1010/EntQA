@@ -16,7 +16,6 @@ import numpy as np
 import faiss
 from collections import Counter, defaultdict
 import cProfile
-import torch.profiler as profiler
 
 
 def load_data(data_dir):
@@ -433,14 +432,14 @@ def get_raw_results(
     ps = []
     with torch.no_grad():
         for _, batch in enumerate(loader):
-            # batch = tuple(t.to(device) for t in batch)
-            batch = tuple(t.to(device, non_blocking=True) for t in batch)
+            batch = tuple(t.to(device) for t in batch)
             if do_rerank:
                 batch_p, rank_logits_b = model(*batch)
             else:
                 batch_p = model(*batch).detach()
+            batch_p = batch_p.cpu()
             ps.append(batch_p)
-        ps = torch.cat(ps, 0).cpu()
+        ps = torch.cat(ps, 0)
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     assert len(raw_predicts) == len(samples)
     return raw_predicts
@@ -752,19 +751,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Set environment variables before all else.
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
-    # main(args)
-    # cProfile.run("main(args)", "output_file.prof", sort="cumtime")
-
-    # Start profiling
-    with profiler.profile(profile_memory=True, record_shapes=True) as prof:
-        with profiler.record_function("model_inference"):
-            main(args)
-
-    # Export results to HTML file
-    prof.export_chrome_trace("trace.json")
-    # prof.export_stacks("stacks.out")
-    # prof.export_callgrind("callgrind.out")
-    # prof.export_chrome_trace("trace.json")
-    prof.export_chrome_trace("trace.html")
+    print(json.dumps(args))
+    main(args)
 
 # python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/reader_retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 5  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
