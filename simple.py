@@ -437,9 +437,8 @@ def get_raw_results(
                 batch_p, rank_logits_b = model(*batch)
             else:
                 batch_p = model(*batch).detach()
-            batch_p = batch_p.cpu()
             ps.append(batch_p)
-        ps = torch.cat(ps, 0)
+        ps = torch.cat(ps, 0).cpu()
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     assert len(raw_predicts) == len(samples)
     return raw_predicts
