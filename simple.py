@@ -16,7 +16,6 @@ import numpy as np
 import faiss
 from collections import Counter, defaultdict
 import cProfile
-from torch.cuda.amp import autocast
 
 
 def load_data(data_dir):
@@ -435,11 +434,10 @@ def get_raw_results(
         for _, batch in enumerate(loader):
             # batch = tuple(t.to(device) for t in batch)
             batch = tuple(t.to(device, non_blocking=True) for t in batch)
-            with autocast():
-                if do_rerank:
-                    batch_p, rank_logits_b = model(*batch)
-                else:
-                    batch_p = model(*batch).detach()
+            if do_rerank:
+                batch_p, rank_logits_b = model(*batch)
+            else:
+                batch_p = model(*batch).detach()
             ps.append(batch_p)
         ps = torch.cat(ps, 0).cpu()
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
