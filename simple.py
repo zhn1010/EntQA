@@ -751,7 +751,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Set environment variables before all else.
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus  # Sets torch.cuda behavior
-    print(json.dumps(args))
+    print(args)
     main(args)
 
 # python ./simple.py --retriver_model ./models/retriever.pt  --pretrained_path ./models/ --blink --max_len 42 --retriever_recall_at_k 100 --use_title  --data_dir ./input/ --kb_dir ./models/data/kb/ --out_dir ./models/reader_retriever_output --gpus 0 --rands_ratio 0.9 --num_cands 64 --mention_bsz 512 --entity_bsz 512 --type_loss sum_log_nce --cands_embeds_path ./models/candidate_embeds.npy --reader_model ./models/reader.pt --C 100  --B 5  --L 180 --thresd  0.05  --k 3  --max_passage_len 32  --filter_span  --type_encoder squad2_electra_large  --type_span_loss sum_log  --type_rank_loss sum_log  --do_rerank
