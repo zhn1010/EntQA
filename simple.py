@@ -16,7 +16,7 @@ import numpy as np
 import faiss
 from collections import Counter, defaultdict
 import cProfile
-import torch.profiler as profiler
+import torch.autograd.profiler as profiler
 
 
 def load_data(data_dir):
@@ -756,9 +756,8 @@ if __name__ == "__main__":
     # cProfile.run("main(args)", "output_file.prof", sort="cumtime")
 
     # Start profiling
-    with profiler.profile(profile_memory=True, record_shapes=True) as prof:
-        with profiler.record_function("model_inference"):
-            main(args)
+    with profiler.profile(record_shapes=True) as prof:
+        main(args)
 
     # Export results to HTML file
     prof.export_chrome_trace("trace.json")
