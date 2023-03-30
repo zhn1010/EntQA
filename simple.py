@@ -433,7 +433,8 @@ def get_raw_results(
     ps = []
     with torch.no_grad():
         for _, batch in enumerate(loader):
-            batch = tuple(t.to(device) for t in batch)
+            # batch = tuple(t.to(device) for t in batch)
+            batch = tuple(t.to(device, non_blocking=True) for t in batch)
             with autocast():
                 if do_rerank:
                     batch_p, rank_logits_b = model(*batch)
