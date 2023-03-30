@@ -16,6 +16,7 @@ import numpy as np
 import faiss
 from collections import Counter, defaultdict
 import cProfile
+from torch.cuda.amp import autocast
 
 
 def load_data(data_dir):
@@ -427,43 +428,18 @@ def get_raw_results(
     filter_span=True,
     no_multi_ents=False,
     do_rerank=True,
-    batch_size=30,
 ):
     model.eval()
     ps = []
     with torch.no_grad():
-        # for _, batch in enumerate(loader):
-        #     batch = tuple(t.to(device) for t in batch)
-        #     if do_rerank:
-        #         batch_p, rank_logits_b = model(*batch)
-        #     else:
-        #         batch_p = model(*batch).detach()
-        #     ps.append(batch_p)
-        for i, batch in enumerate(loader):
-            if i % batch_size == 0 and i > 0:
-                # move the accumulated batch to GPU
-                batch = tuple(t.to(device) for t in batch)
+        for _, batch in enumerate(loader):
+            batch = tuple(t.to(device) for t in batch)
+            with autocast():
                 if do_rerank:
                     batch_p, rank_logits_b = model(*batch)
                 else:
                     batch_p = model(*batch).detach()
-                ps.append(batch_p.cpu())
-                # reset the accumulated batch
-                accumulated_batch = [[] for _ in range(len(batch))]
-            accumulated_batch = [
-                accumulated_batch[i] + [t.cpu()] for i, t in enumerate(batch)
-            ]
-        # process the last accumulated batch
-        if accumulated_batch:
-            batch = tuple(
-                torch.cat(tensors, dim=0).to(device) for tensors in accumulated_batch
-            )
-            if do_rerank:
-                batch_p, rank_logits_b = model(*batch)
-            else:
-                batch_p = model(*batch).detach()
-            ps.append(batch_p.cpu())
-        # concatenate the results
+            ps.append(batch_p)
         ps = torch.cat(ps, 0).cpu()
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     assert len(raw_predicts) == len(samples)
