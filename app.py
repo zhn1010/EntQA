@@ -530,11 +530,125 @@ def save_doc_results(doc_results, tokenized_raw_data, out_dir):
             f.write("%s\n" % json.dumps(r))
 
 
+class Args(object):
+
+    # B=10, C=100, L=180, blink=True, cands_embeds_path='./models/candidate_embeds.npy', data_dir='./input/', do_rerank=True, entity_bsz=512, filter_span=
+    # True, gpus='0', k=3, kb_dir='./models/data/kb/', max_answer_len=10, max_len=42, max_passage_len=32, mention_bsz=512, no_multi_ents=False, num_cands=64, out_di
+    # r='./models/reader_retriever_output', pretrained_path='./models/', rands_ratio=0.9, reader_model='./models/reader.pt', retriever_recall_at_k=100, retriver_mod
+    # el='./models/retriever.pt', seed=42, thresd=0.05, type_encoder='squad2_electra_large', type_loss='sum_log_nce', type_rank_loss='sum_log', type_span_loss='sum_
+    # log', use_cached_embeds=False, use_gpu_index=False, use_title=True
+
+    def __init__(
+        self,
+        B,
+        C,
+        L,
+        blink,
+        cands_embeds_path,
+        data_dir,
+        do_rerank,
+        entity_bsz,
+        filter_span,
+        gpus,
+        K,
+        kb_dir,
+        max_answer_len,
+        max_len,
+        max_passage_len,
+        mention_bsz,
+        no_multi_ents,
+        num_cands,
+        out_dir,
+        pretrained_path,
+        rands_ratio,
+        reader_model,
+        retriever_recall_at_k,
+        retriver_model,
+        seed,
+        thresd,
+        type_encoder,
+        type_loss,
+        type_rank_loss,
+        type_span_loss,
+        use_cached_embeds,
+        use_gpu_index,
+        use_title,
+    ):
+        self.B = B
+        self.C = C
+        self.L = L
+        self.blink = blink
+        self.cands_embeds_path = cands_embeds_path
+        self.data_dir = data_dir
+        self.do_rerank = do_rerank
+        self.entity_bsz = entity_bsz
+        self.filter_span = filter_span
+        self.gpus = gpus
+        self.K = K
+        self.kb_dir = kb_dir
+        self.max_answer_len = max_answer_len
+        self.max_len = max_len
+        self.max_passage_len = max_passage_len
+        self.mention_bsz = mention_bsz
+        self.no_multi_ents = no_multi_ents
+        self.num_cands = num_cands
+        self.out_dir = out_dir
+        self.pretrained_path = pretrained_path
+        self.rands_ratio = rands_ratio
+        self.reader_model = reader_model
+        self.retriever_recall_at_k = retriever_recall_at_k
+        self.retriver_model = retriver_model
+        self.seed = seed
+        self.thresd = thresd
+        self.type_encoder = type_encoder
+        self.type_loss = type_loss
+        self.type_rank_loss = type_rank_loss
+        self.type_span_loss = type_span_loss
+        self.use_cached_embeds = use_cached_embeds
+        self.use_gpu_index = use_gpu_index
+        self.use_title = use_title
+
+
 app = Flask(__name__)
 
 
 # --------------------------- Load models and data --------------------------- #
-args = ...  # Set your arguments here
+args = Args(
+    10,
+    100,
+    180,
+    True,
+    "./models/candidate_embeds.npy",
+    "./input/",
+    True,
+    512,
+    True,
+    "0",
+    3,
+    "./models/data/kb/",
+    10,
+    42,
+    32,
+    512,
+    False,
+    64,
+    "./models/reader_retriever_output",
+    "./models/",
+    0.9,
+    "./models/reader.pt",
+    100,
+    "./models/retriever.pt",
+    42,
+    0.05,
+    "squad2_electra_large",
+    "sum_log_nce",
+    "sum_log",
+    "sum_log",
+    False,
+    False,
+    use_title=True,
+)
+
 set_seeds(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args.device = device
