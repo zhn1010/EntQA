@@ -30,7 +30,6 @@ def tokenize_original_text(raw_data, tokenizer, args):
     data = []
     tokenized_raw_data = {}
     for d in raw_data:
-        print("d", d)
         orig_text = d["text"]
         orig_title = d["title"]
         text = tokenizer.tokenize(orig_text)
