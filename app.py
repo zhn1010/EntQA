@@ -22,9 +22,6 @@ import time
 
 
 def load_data(json_input):
-    print("json_input ---------------------------------------------- json_input")
-    print(json_input)
-    print("json_input ---------------------------------------------- json_input")
     result = json_input  # json.loads(json_input)
     return result
 
@@ -536,13 +533,6 @@ def save_doc_results(doc_results, tokenized_raw_data, out_dir):
 
 
 class Args(object):
-
-    # B=10, C=100, L=180, blink=True, cands_embeds_path='./models/candidate_embeds.npy', data_dir='./input/', do_rerank=True, entity_bsz=512, filter_span=
-    # True, gpus='0', k=3, kb_dir='./models/data/kb/', max_answer_len=10, max_len=42, max_passage_len=32, mention_bsz=512, no_multi_ents=False, num_cands=64, out_di
-    # r='./models/reader_retriever_output', pretrained_path='./models/', rands_ratio=0.9, reader_model='./models/reader.pt', retriever_recall_at_k=100, retriver_mod
-    # el='./models/retriever.pt', seed=42, thresd=0.05, type_encoder='squad2_electra_large', type_loss='sum_log_nce', type_rank_loss='sum_log', type_span_loss='sum_
-    # log', use_cached_embeds=False, use_gpu_index=False, use_title=True
-
     def __init__(
         self,
         B,
@@ -704,9 +694,7 @@ def process_text():
     print("Preparing input data ...")
     start_time = time.time()
     input_data = request.get_json(force=True)
-    text_data = input_data["text_data"]
-
-    raw_data = load_data(text_data)
+    raw_data = input_data["text_data"]
     tokenized_samples, tokenized_raw_data = tokenize_original_text(
         raw_data, retriever_tokenizer, {"instance_length": 32, "stride": 16}
     )
