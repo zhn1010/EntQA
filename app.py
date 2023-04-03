@@ -22,6 +22,9 @@ import time
 
 
 def load_data(json_input):
+    print("json_input ---------------------------------------------- json_input")
+    print(json_input)
+    print("json_input ---------------------------------------------- json_input")
     result = json.loads(json_input)
     return result
 
