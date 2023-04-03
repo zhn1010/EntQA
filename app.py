@@ -781,10 +781,10 @@ def process_text():
     print("Deleting extra data ...")
     start_time = time.time()
 
-    del test_mention_embeds
+    # del test_mention_embeds
     # del retriever_model
-    del all_cands_embeds
-    torch.cuda.empty_cache()
+    # del all_cands_embeds
+    # torch.cuda.empty_cache()
 
     end_time = time.time()
     runtime = end_time - start_time
