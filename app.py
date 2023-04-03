@@ -743,15 +743,15 @@ print(f"Models are loaded in {runtime}s")
 @app.route("/process_text", methods=["POST"])
 def process_text():
     print("Preparing input data ...")
-    # start_time = time.time()
+    start_time = time.time()
     # input_data = request.get_json(force=True)
     # raw_data = input_data["text_data"]
     # tokenized_samples, tokenized_raw_data = tokenize_original_text(
     #     raw_data, retriever_tokenizer, {"instance_length": 32, "stride": 16}
     # )
-    # end_time = time.time()
-    # runtime = end_time - start_time
     tokenized_samples = json.load(open("./tokenized_aida_val.json"))
+    end_time = time.time()
+    runtime = end_time - start_time
     print(f"Input data is prepared in {runtime}s")
     print("Running retriever ...")
     start_time = time.time()
