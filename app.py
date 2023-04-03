@@ -610,7 +610,7 @@ app = Flask(__name__)
 
 print("Loading models ...")
 
-start_time = time.time()
+model_loading_start_time = time.time()
 args = Args(
     10,
     100,
@@ -650,11 +650,30 @@ args = Args(
 set_seeds(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args.device = device
-entities = load_entities(args.kb_dir)
-entity_map = get_entity_map(entities)
-biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
-retriever_tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
 
+start_time = time.time()
+entities = load_entities(args.kb_dir)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"load_entities in {runtime}s")
+
+start_time = time.time()
+entity_map = get_entity_map(entities)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"entity_map in {runtime}s")
+
+
+biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
+
+start_time = time.time()
+retriever_tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
+end_time = time.time()
+runtime = end_time - start_time
+print(f"BertTokenizer.from_pretrained in {runtime}s")
+
+
+start_time = time.time()
 retriever_model = load_retriever_model(
     biencoder_config,
     args.retriver_model,
@@ -662,10 +681,30 @@ retriever_model = load_retriever_model(
     args.type_loss,
     args.blink,
 )
-retriever_model.to(device)
-retriever_model.eval()
-all_cands_embeds = np.load(args.cands_embeds_path)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"load_retriever_model in {runtime}s")
 
+start_time = time.time()
+retriever_model.to(device)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"retriever_model.to in {runtime}s")
+
+start_time = time.time()
+retriever_model.eval()
+end_time = time.time()
+runtime = end_time - start_time
+print(f"retriever_model.eval in {runtime}s")
+
+
+start_time = time.time()
+all_cands_embeds = np.load(args.cands_embeds_path)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"np.load(args.cands_embeds_path) in {runtime}s")
+
+start_time = time.time()
 reader_model, reader_tokenizer = load_reader_model(
     args.reader_model,
     args.type_encoder,
@@ -676,15 +715,28 @@ reader_model, reader_tokenizer = load_reader_model(
     args.max_answer_len,
     args.max_passage_len,
 )
+end_time = time.time()
+runtime = end_time - start_time
+print(f"load_reader_model in {runtime}s")
+
+start_time = time.time()
 reader_model.to(device)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"reader_model.to in {runtime}s")
+
 args.n_gpu = torch.cuda.device_count()
 dp = args.n_gpu > 1
 if dp:
     reader_model = nn.DataParallel(reader_model)
+start_time = time.time()
 reader_model.eval()
 end_time = time.time()
-
 runtime = end_time - start_time
+print(f"reader_model.eval in {runtime}s")
+model_loading_end_time = time.time()
+
+runtime = model_loading_end_time - model_loading_start_time
 print(f"Models are loaded in {runtime}s")
 
 # --------------------------- Define API route --------------------------- #
