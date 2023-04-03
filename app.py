@@ -730,7 +730,7 @@ def process_text():
     start_time = time.time()
 
     del test_mention_embeds
-    del retriever_model
+    # del retriever_model
     del all_cands_embeds
     torch.cuda.empty_cache()
 
