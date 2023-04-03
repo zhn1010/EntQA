@@ -208,15 +208,15 @@ def get_hard_negative(
     return hard_indices  # , scores
 
 
-def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
+def prepare_candidates(tokenizer, samples, topk_candidates):  # , entity_map):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    entity_titles = np.array(list(entity_map.keys()))
+    # entity_titles = np.array(list(entity_map.keys()))
     candidates = []
     for i in range(len(samples)):
         sample = samples[i]
         m_candidates = topk_candidates[i].tolist()
-        candidate_titles = entity_titles[m_candidates]
+        # candidate_titles = entity_titles[m_candidates]
         item = {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
@@ -226,7 +226,7 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": candidate_titles.tolist(),
+            # "candidate_titles": candidate_titles.tolist(),
         }
         candidates.append(item)
     return candidates
@@ -651,17 +651,17 @@ set_seeds(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args.device = device
 
-start_time = time.time()
-entities = load_entities(args.kb_dir)
-end_time = time.time()
-runtime = end_time - start_time
-print(f"load_entities in {runtime}s")
+# start_time = time.time()
+# entities = load_entities(args.kb_dir)
+# end_time = time.time()
+# runtime = end_time - start_time
+# print(f"load_entities in {runtime}s")
 
-start_time = time.time()
-entity_map = get_entity_map(entities)
-end_time = time.time()
-runtime = end_time - start_time
-print(f"entity_map in {runtime}s")
+# start_time = time.time()
+# entity_map = get_entity_map(entities)
+# end_time = time.time()
+# runtime = end_time - start_time
+# print(f"entity_map in {runtime}s")
 
 
 biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
@@ -772,8 +772,9 @@ def process_text():
         args.use_gpu_index,
     )
     candidates = prepare_candidates(
-        retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
-    )
+        retriever_tokenizer, tokenized_samples, topk_candidates
+    )  # , entity_map
+    # )
     end_time = time.time()
     runtime = end_time - start_time
     print(f"Retriever ran in {runtime}s")
