@@ -611,77 +611,77 @@ app = Flask(__name__)
 print("Loading models ...")
 
 start_time = time.time()
-# args = Args(
-#     10,
-#     100,
-#     180,
-#     True,
-#     "./models/candidate_embeds.npy",
-#     "./input/",
-#     True,
-#     512,
-#     True,
-#     "0",
-#     3,
-#     "./models/data/kb/",
-#     10,
-#     42,
-#     32,
-#     512,
-#     False,
-#     64,
-#     "./models/reader_retriever_output",
-#     "./models/",
-#     0.9,
-#     "./models/reader.pt",
-#     100,
-#     "./models/retriever.pt",
-#     42,
-#     0.05,
-#     "squad2_electra_large",
-#     "sum_log_nce",
-#     "sum_log",
-#     "sum_log",
-#     False,
-#     False,
-#     use_title=True,
-# )
+args = Args(
+    10,
+    100,
+    180,
+    True,
+    "./models/candidate_embeds.npy",
+    "./input/",
+    True,
+    512,
+    True,
+    "0",
+    3,
+    "./models/data/kb/",
+    10,
+    42,
+    32,
+    512,
+    False,
+    64,
+    "./models/reader_retriever_output",
+    "./models/",
+    0.9,
+    "./models/reader.pt",
+    100,
+    "./models/retriever.pt",
+    42,
+    0.05,
+    "squad2_electra_large",
+    "sum_log_nce",
+    "sum_log",
+    "sum_log",
+    False,
+    False,
+    use_title=True,
+)
 
-# set_seeds(args)
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# args.device = device
-# entities = load_entities(args.kb_dir)
-# entity_map = get_entity_map(entities)
-# biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
+set_seeds(args)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+args.device = device
+entities = load_entities(args.kb_dir)
+entity_map = get_entity_map(entities)
+biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
 retriever_tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
 
-# retriever_model = load_retriever_model(
-#     biencoder_config,
-#     args.retriver_model,
-#     device,
-#     args.type_loss,
-#     args.blink,
-# )
-# retriever_model.to(device)
-# retriever_model.eval()
-# all_cands_embeds = np.load(args.cands_embeds_path)
+retriever_model = load_retriever_model(
+    biencoder_config,
+    args.retriver_model,
+    device,
+    args.type_loss,
+    args.blink,
+)
+retriever_model.to(device)
+retriever_model.eval()
+all_cands_embeds = np.load(args.cands_embeds_path)
 
-# reader_model, reader_tokenizer = load_reader_model(
-#     args.reader_model,
-#     args.type_encoder,
-#     device,
-#     args.type_span_loss,
-#     args.do_rerank,
-#     args.type_rank_loss,
-#     args.max_answer_len,
-#     args.max_passage_len,
-# )
-# reader_model.to(device)
-# args.n_gpu = torch.cuda.device_count()
-# dp = args.n_gpu > 1
-# if dp:
-#     reader_model = nn.DataParallel(reader_model)
-# reader_model.eval()
+reader_model, reader_tokenizer = load_reader_model(
+    args.reader_model,
+    args.type_encoder,
+    device,
+    args.type_span_loss,
+    args.do_rerank,
+    args.type_rank_loss,
+    args.max_answer_len,
+    args.max_passage_len,
+)
+reader_model.to(device)
+args.n_gpu = torch.cuda.device_count()
+dp = args.n_gpu > 1
+if dp:
+    reader_model = nn.DataParallel(reader_model)
+reader_model.eval()
 end_time = time.time()
 
 runtime = end_time - start_time
@@ -700,77 +700,76 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"Input data is prepared in {runtime}s")
-    return jsonify(tokenized_samples)
-    # print("Running retriever ...")
-    # start_time = time.time()
-    # samples_loader = get_retriever_loader(
-    #     tokenized_samples,
-    #     entities,
-    #     args.max_len,
-    #     retriever_tokenizer,
-    #     args.mention_bsz,
-    #     args.entity_bsz,
-    #     args.use_title,
-    # )
-    # test_mention_embeds = get_embeddings(samples_loader, retriever_model, True, device)
-    # topk_candidates = get_hard_negative(
-    #     test_mention_embeds,
-    #     all_cands_embeds,
-    #     args.retriever_recall_at_k,
-    #     0,
-    #     args.use_gpu_index,
-    # )
-    # candidates = prepare_candidates(
-    #     retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
-    # )
-    # end_time = time.time()
-    # runtime = end_time - start_time
-    # print(f"Retriever ran in {runtime}s")
+    print("Running retriever ...")
+    start_time = time.time()
+    samples_loader = get_retriever_loader(
+        tokenized_samples,
+        entities,
+        args.max_len,
+        retriever_tokenizer,
+        args.mention_bsz,
+        args.entity_bsz,
+        args.use_title,
+    )
+    test_mention_embeds = get_embeddings(samples_loader, retriever_model, True, device)
+    topk_candidates = get_hard_negative(
+        test_mention_embeds,
+        all_cands_embeds,
+        args.retriever_recall_at_k,
+        0,
+        args.use_gpu_index,
+    )
+    candidates = prepare_candidates(
+        retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
+    )
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"Retriever ran in {runtime}s")
 
-    # print("Deleting extra data ...")
-    # start_time = time.time()
+    print("Deleting extra data ...")
+    start_time = time.time()
 
-    # del test_mention_embeds
-    # del retriever_model
-    # del all_cands_embeds
-    # torch.cuda.empty_cache()
+    del test_mention_embeds
+    del retriever_model
+    del all_cands_embeds
+    torch.cuda.empty_cache()
 
-    # end_time = time.time()
-    # runtime = end_time - start_time
-    # print(f"Extra data is removed in {runtime}s")
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"Extra data is removed in {runtime}s")
 
-    # print("Running reader ...")
-    # start_time = time.time()
+    print("Running reader ...")
+    start_time = time.time()
 
-    # loader = get_reader_loaders(
-    #     reader_tokenizer,
-    #     candidates,
-    #     entities,
-    #     args.L,
-    #     args.C,
-    #     args.B,
-    #     args.use_title,
-    # )
-    # raw_predicts = get_raw_results(
-    #     reader_model,
-    #     device,
-    #     loader,
-    #     args.k,
-    #     candidates,
-    #     args.filter_span,
-    #     args.no_multi_ents,
-    #     args.do_rerank,
-    # )
-    # pruned_preds = prune_predicts(raw_predicts, args.thresd)
-    # predicts = transform_predicts(pruned_preds, entities, candidates)
-    # sample_results = get_sample_results(predicts, candidates)  # , args.out_dir)
-    # doc_results = get_sample_docs(sample_results, tokenized_raw_data, entity_map)
+    loader = get_reader_loaders(
+        reader_tokenizer,
+        candidates,
+        entities,
+        args.L,
+        args.C,
+        args.B,
+        args.use_title,
+    )
+    raw_predicts = get_raw_results(
+        reader_model,
+        device,
+        loader,
+        args.k,
+        candidates,
+        args.filter_span,
+        args.no_multi_ents,
+        args.do_rerank,
+    )
+    pruned_preds = prune_predicts(raw_predicts, args.thresd)
+    predicts = transform_predicts(pruned_preds, entities, candidates)
+    sample_results = get_sample_results(predicts, candidates)  # , args.out_dir)
+    doc_results = get_sample_docs(sample_results, tokenized_raw_data, entity_map)
 
-    # end_time = time.time()
-    # runtime = end_time - start_time
-    # print(f"Reader ran in {runtime}s")
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"Reader ran in {runtime}s")
 
-    # return jsonify(doc_results)
+    return jsonify(doc_results)
 
 
 # --------------------------- Run the Flask app --------------------------- #
