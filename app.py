@@ -544,7 +544,7 @@ class Args(object):
         entity_bsz,
         filter_span,
         gpus,
-        K,
+        k,
         kb_dir,
         max_answer_len,
         max_len,
@@ -578,7 +578,7 @@ class Args(object):
         self.entity_bsz = entity_bsz
         self.filter_span = filter_span
         self.gpus = gpus
-        self.K = K
+        self.k = k
         self.kb_dir = kb_dir
         self.max_answer_len = max_answer_len
         self.max_len = max_len
@@ -634,7 +634,7 @@ args = Args(
     "./models/",
     0.9,
     "./models/reader.pt",
-    100,
+    10,
     "./models/retriever.pt",
     42,
     0.05,
@@ -777,18 +777,6 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"Retriever ran in {runtime}s")
-
-    print("Deleting extra data ...")
-    start_time = time.time()
-
-    # del test_mention_embeds
-    # del retriever_model
-    # del all_cands_embeds
-    # torch.cuda.empty_cache()
-
-    end_time = time.time()
-    runtime = end_time - start_time
-    print(f"Extra data is removed in {runtime}s")
 
     print("Running reader ...")
     start_time = time.time()
