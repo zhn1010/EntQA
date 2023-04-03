@@ -7,6 +7,7 @@ data = {
 }
 
 response = requests.post(url, json=data)
+print(response)
 doc_results = json.loads(response.text)
 
 print(doc_results)
