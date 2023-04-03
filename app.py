@@ -208,15 +208,15 @@ def get_hard_negative(
     return hard_indices  # , scores
 
 
-def prepare_candidates(tokenizer, samples, topk_candidates):  # , entity_map):
+def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    # entity_titles = np.array(list(entity_map.keys()))
+    entity_titles = np.array(list(entity_map.keys()))
     candidates = []
     for i in range(len(samples)):
         sample = samples[i]
         m_candidates = topk_candidates[i].tolist()
-        # candidate_titles = entity_titles[m_candidates]
+        candidate_titles = entity_titles[m_candidates]
         item = {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
@@ -226,7 +226,7 @@ def prepare_candidates(tokenizer, samples, topk_candidates):  # , entity_map):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            # "candidate_titles": candidate_titles.tolist(),
+            "candidate_titles": candidate_titles.tolist(),
         }
         candidates.append(item)
     return candidates
@@ -772,9 +772,8 @@ def process_text():
         args.use_gpu_index,
     )
     candidates = prepare_candidates(
-        retriever_tokenizer, tokenized_samples, topk_candidates
-    )  # , entity_map
-    # )
+        retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
+    )
     end_time = time.time()
     runtime = end_time - start_time
     print(f"Retriever ran in {runtime}s")
@@ -827,4 +826,4 @@ def process_text():
 
 # --------------------------- Run the Flask app --------------------------- #
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, use_reloader=False)
