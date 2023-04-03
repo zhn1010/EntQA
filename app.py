@@ -651,17 +651,17 @@ set_seeds(args)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args.device = device
 
-# start_time = time.time()
-# entities = load_entities(args.kb_dir)
-# end_time = time.time()
-# runtime = end_time - start_time
-# print(f"load_entities in {runtime}s")
+start_time = time.time()
+entities = load_entities(args.kb_dir)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"load_entities in {runtime}s")
 
-# start_time = time.time()
-# entity_map = get_entity_map(entities)
-# end_time = time.time()
-# runtime = end_time - start_time
-# print(f"entity_map in {runtime}s")
+start_time = time.time()
+entity_map = get_entity_map(entities)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"entity_map in {runtime}s")
 
 
 biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
