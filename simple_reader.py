@@ -222,37 +222,20 @@ def get_loaders(
 
 
 def get_raw_results(
-    model, device, loader, k, samples, do_rerank, filter_span=True, no_multi_ents=False
+    model, device, loader, k, samples, filter_span=True, no_multi_ents=False
 ):
     model.eval()
-    ranking_scores = []
-    ranking_labels = []
     ps = []
     with torch.no_grad():
         for _, batch in enumerate(loader):
             batch = tuple(t.to(device) for t in batch)
-            if do_rerank:
-                batch_p, rank_logits_b = model(*batch)
-            else:
-                batch_p = model(*batch).detach()
+            batch_p = model(*batch).detach()
             batch_p = batch_p.cpu()
             ps.append(batch_p)
-            if do_rerank:
-                print(f"len(batch): {len(batch)}")
-                ranking_scores.append(rank_logits_b.cpu())
-                ranking_labels.append(batch[4].cpu())
         ps = torch.cat(ps, 0)
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
-    print("len(raw_predicts)", len(raw_predicts))
-    print("len(samples)", len(samples))
     assert len(raw_predicts) == len(samples)
-    if do_rerank:
-        ranking_scores = torch.cat(ranking_scores, 0)
-        ranking_labels = torch.cat(ranking_labels, 0)
-    else:
-        ranking_scores = None
-        ranking_labels = None
-    return raw_predicts  # , ranking_scores, ranking_labels
+    return raw_predicts
 
 
 def transform_predicts(preds, entities, samples):
@@ -279,6 +262,7 @@ def save_results(predicts, samples, results_dir):
     for predict, sample in zip(predicts, samples):
         result = {}
         result["doc_id"] = sample["doc_id"]
+        result["offset"] = sample["offset"]
         result["text"] = sample["token_text"]
         result["predicts"] = predict
         results.append(result)
@@ -289,12 +273,7 @@ def save_results(predicts, samples, results_dir):
 
 def main(args):
     set_seeds(args)
-    best_val_perf = float("-inf")
-    logger = Logger(args.model + ".log", on=True)
-    logger.log(str(args))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger.log(f"Using device: {str(device)}", force=True)
-    start_time = datetime.now()
     # configure logger
     args.device = device
     samples = load_data(args.data_dir)
@@ -309,7 +288,6 @@ def main(args):
         args.max_answer_len,
         args.max_passage_len,
     )
-
     loader = get_loaders(
         tokenizer,
         samples,
@@ -323,21 +301,14 @@ def main(args):
     args.n_gpu = torch.cuda.device_count()
     dp = args.n_gpu > 1
     if dp:
-        logger.log(
-            "Data parallel across {:d} GPUs {:s}"
-            "".format(len(args.gpus.split(",")), args.gpus)
-        )
         model = nn.DataParallel(model)
     model.eval()
-    logger.log("getting test raw predicts")
-    start_time_test_infer = datetime.now()
     raw_predicts = get_raw_results(
         model,
         device,
         loader,
         args.k,
         samples,
-        args.do_rerank,
         args.filter_span,
         args.no_multi_ents,
     )

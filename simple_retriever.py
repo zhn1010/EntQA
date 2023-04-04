@@ -217,12 +217,12 @@ def save_candidates(tokenizer, samples, topk_candidates, entity_map, out_dir):
         item = {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
+            "offset": sample["offset"],
             "candidates": m_candidates,
             "title_ids": sample["title"],
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "offset": sample["offset"],
             "candidate_titles": candidate_titles.tolist(),
         }
         print(item)
