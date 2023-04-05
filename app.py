@@ -179,6 +179,27 @@ def get_retriever_loader(
     return samples_loader  # , entity_loader
 
 
+def get_embeddings(loader, model, is_sample, device):
+    model.eval()
+    embeddings = []
+    with torch.no_grad():
+        loader = DataLoader(loader.dataset, batch_size=loader.batch_size, num_workers=4)
+        for i, batch in enumerate(loader):
+            batch = tuple(t.to(device) for t in batch)
+            input_ids, input_masks = batch
+            k1, k2 = (
+                ("mention_token_ids", "mention_masks")
+                if is_sample
+                else ("entity_token_ids", "entity_masks")
+            )
+            kwargs = {k1: input_ids, k2: input_masks}
+            j = 0 if is_sample else 2
+            embed = model(**kwargs)[j].detach()
+            embeddings.append(embed.cpu().numpy())
+    embeddings = np.concatenate(embeddings, axis=0)
+    return embeddings
+
+
 # def get_embeddings(loader, model, is_sample, device):
 #     model.eval()
 #     embeddings = []
@@ -193,31 +214,11 @@ def get_retriever_loader(
 #             )
 #             kwargs = {k1: input_ids, k2: input_masks}
 #             j = 0 if is_sample else 2
-#             embed = model(**kwargs)[j].detach()
-#             embeddings.append(embed.cpu().numpy())
-#     embeddings = np.concatenate(embeddings, axis=0)
+#             embed = model(**kwargs)[j]
+#             embeddings.append(embed)
+#     embeddings = torch.cat(embeddings, dim=0)
+#     embeddings = embeddings.cpu().numpy()
 #     return embeddings
-
-
-def get_embeddings(loader, model, is_sample, device):
-    model.eval()
-    embeddings = []
-    with torch.no_grad():
-        for i, batch in enumerate(loader):
-            batch = tuple(t.to(device) for t in batch)
-            input_ids, input_masks = batch
-            k1, k2 = (
-                ("mention_token_ids", "mention_masks")
-                if is_sample
-                else ("entity_token_ids", "entity_masks")
-            )
-            kwargs = {k1: input_ids, k2: input_masks}
-            j = 0 if is_sample else 2
-            embed = model(**kwargs)[j]
-            embeddings.append(embed)
-    embeddings = torch.cat(embeddings, dim=0)
-    embeddings = embeddings.cpu().numpy()
-    return embeddings
 
 
 def get_hard_negative(
