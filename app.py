@@ -767,6 +767,7 @@ def process_text():
     runtime = end_time - start_time
     print(f"Input data is prepared in {runtime}s")
     print("Running retriever ...")
+    retriever_start_time = time.time()
     start_time = time.time()
     samples_loader = get_retriever_loader(
         tokenized_samples,
@@ -777,9 +778,16 @@ def process_text():
         args.entity_bsz,
         args.use_title,
     )
-    print("after get_retriever_loader")
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"get_retriever_loader in {runtime}s")
+
+    start_time = time.time()
     test_mention_embeds = get_embeddings(samples_loader, retriever_model, True, device)
-    print("after get_embeddings")
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"get_embeddings in {runtime}s")
+    start_time = time.time()
     topk_candidates = get_hard_negative(
         test_mention_embeds,
         all_cands_embeds,
@@ -787,12 +795,18 @@ def process_text():
         0,
         args.use_gpu_index,
     )
-    print("after get_hard_negative")
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"get_hard_negative in {runtime}s")
+    start_time = time.time()
     candidates = prepare_candidates(
         retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
     )
     end_time = time.time()
     runtime = end_time - start_time
+    print(f"prepare_candidates in {runtime}s")
+    retriever_end_time = time.time()
+    runtime = retriever_end_time - retriever_start_time
     print(f"Retriever ran in {runtime}s")
 
     print("Running reader ...")
