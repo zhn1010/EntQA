@@ -75,7 +75,7 @@ def load_entities(kb_dir):
             entities.append(json.loads(line))
             ### To be Removed sooon !!!!!!!! ###
             counter += 1
-            if counter > 100000:
+            if counter > 1000000:
                 break
             ######################################
     return entities
