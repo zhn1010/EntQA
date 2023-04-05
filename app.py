@@ -75,7 +75,7 @@ def load_entities(kb_dir):
             entities.append(json.loads(line))
             ### To be Removed sooon !!!!!!!! ###
             counter += 1
-            if counter > 100000:
+            if counter > 1000000:
                 break
             ######################################
     return entities
@@ -624,7 +624,7 @@ args = Args(
     "./models/candidate_embeds.npy",
     "./input/",
     True,
-    512,
+    4096,
     True,
     "0",
     3,
@@ -769,7 +769,9 @@ def process_text():
         args.entity_bsz,
         args.use_title,
     )
+    print("after get_retriever_loader")
     test_mention_embeds = get_embeddings(samples_loader, retriever_model, True, device)
+    print("after get_embeddings")
     topk_candidates = get_hard_negative(
         test_mention_embeds,
         all_cands_embeds,
@@ -777,6 +779,7 @@ def process_text():
         0,
         args.use_gpu_index,
     )
+    print("after get_hard_negative")
     candidates = prepare_candidates(
         retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
     )
