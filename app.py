@@ -200,13 +200,8 @@ def get_embeddings(loader, model, is_sample, device):
     return embeddings
 
 
-def get_hard_negative(
-    mention_embeddings, all_entity_embeds, k, max_num_postives, use_gpu_index=False
-):
-    index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
-    if use_gpu_index:
-        index = faiss.index_cpu_to_all_gpus(index)
-    index.add(all_entity_embeds)
+def get_hard_negative(mention_embeddings, index, k, max_num_postives):
+
     scores, hard_indices = index.search(mention_embeddings, k + max_num_postives)
     del mention_embeddings
     del index
@@ -216,12 +211,12 @@ def get_hard_negative(
 def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    entity_titles = np.array(list(entity_map.keys()))
+    # entity_titles = np.array(list(entity_map.keys()))
     candidates = []
     for i in range(len(samples)):
         sample = samples[i]
         m_candidates = topk_candidates[i].tolist()
-        candidate_titles = entity_titles[m_candidates]
+        # candidate_titles = entity_titles[m_candidates]
         item = {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
@@ -231,7 +226,7 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": candidate_titles.tolist(),
+            # "candidate_titles": candidate_titles.tolist(),
         }
         candidates.append(item)
     return candidates
@@ -668,6 +663,16 @@ end_time = time.time()
 runtime = end_time - start_time
 print(f"entity_map in {runtime}s")
 
+start_time = time.time()
+all_entity_embeds = np.load(args.cands_embeds_path)
+index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
+if args.use_gpu_index:
+    index = faiss.index_cpu_to_all_gpus(index)
+index.add(all_entity_embeds)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"made index in {runtime}s")
+
 
 biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
 
@@ -704,7 +709,7 @@ print(f"retriever_model.eval in {runtime}s")
 
 
 start_time = time.time()
-all_cands_embeds = np.load(args.cands_embeds_path)
+
 end_time = time.time()
 runtime = end_time - start_time
 print(f"np.load(args.cands_embeds_path) in {runtime}s")
@@ -774,10 +779,9 @@ def process_text():
     print("after get_embeddings")
     topk_candidates = get_hard_negative(
         test_mention_embeds,
-        all_cands_embeds,
+        faiss_index,
         args.retriever_recall_at_k,
         0,
-        args.use_gpu_index,
     )
     print("after get_hard_negative")
     candidates = prepare_candidates(
