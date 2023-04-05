@@ -183,7 +183,6 @@ def get_embeddings(loader, model, is_sample, device):
     model.eval()
     embeddings = []
     with torch.no_grad():
-        loader = DataLoader(loader.dataset, batch_size=loader.batch_size, num_workers=4)
         for i, batch in enumerate(loader):
             batch = tuple(t.to(device) for t in batch)
             input_ids, input_masks = batch
