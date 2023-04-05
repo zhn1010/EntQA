@@ -75,7 +75,7 @@ def load_entities(kb_dir):
             entities.append(json.loads(line))
             ### To be Removed sooon !!!!!!!! ###
             counter += 1
-            if counter > 1000000:
+            if counter > 100000:
                 break
             ######################################
     return entities
@@ -200,9 +200,22 @@ def get_embeddings(loader, model, is_sample, device):
     return embeddings
 
 
-def get_hard_negative(mention_embeddings, index, k, max_num_postives):
-
+def get_hard_negative(
+    mention_embeddings, all_entity_embeds, k, max_num_postives, use_gpu_index=False
+):
+    start_time = time.time()
+    index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
+    if use_gpu_index:
+        index = faiss.index_cpu_to_all_gpus(index)
+    index.add(all_entity_embeds)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"creating faiss index in {runtime}s")
+    start_time = time.time()
     scores, hard_indices = index.search(mention_embeddings, k + max_num_postives)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"index.search in {runtime}s")
     del mention_embeddings
     del index
     return hard_indices  # , scores
@@ -663,16 +676,6 @@ end_time = time.time()
 runtime = end_time - start_time
 print(f"entity_map in {runtime}s")
 
-start_time = time.time()
-all_entity_embeds = np.load(args.cands_embeds_path)
-faiss_index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
-if args.use_gpu_index:
-    index = faiss.index_cpu_to_all_gpus(faiss_index)
-faiss_index.add(all_entity_embeds)
-end_time = time.time()
-runtime = end_time - start_time
-print(f"made index in {runtime}s")
-
 
 biencoder_config = args.pretrained_path + "biencoder_wiki_large.json"
 
@@ -709,7 +712,7 @@ print(f"retriever_model.eval in {runtime}s")
 
 
 start_time = time.time()
-
+all_cands_embeds = np.load(args.cands_embeds_path)
 end_time = time.time()
 runtime = end_time - start_time
 print(f"np.load(args.cands_embeds_path) in {runtime}s")
@@ -779,9 +782,10 @@ def process_text():
     print("after get_embeddings")
     topk_candidates = get_hard_negative(
         test_mention_embeds,
-        faiss_index,
+        all_cands_embeds,
         args.retriever_recall_at_k,
         0,
+        args.use_gpu_index,
     )
     print("after get_hard_negative")
     candidates = prepare_candidates(
