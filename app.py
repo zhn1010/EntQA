@@ -75,7 +75,7 @@ def load_entities(kb_dir):
             entities.append(json.loads(line))
             ### To be Removed sooon !!!!!!!! ###
             counter += 1
-            if counter > 1000000:
+            if counter > 100000:
                 break
             ######################################
     return entities
@@ -665,10 +665,10 @@ print(f"entity_map in {runtime}s")
 
 start_time = time.time()
 all_entity_embeds = np.load(args.cands_embeds_path)
-index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
+faiss_index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
 if args.use_gpu_index:
-    index = faiss.index_cpu_to_all_gpus(index)
-index.add(all_entity_embeds)
+    index = faiss.index_cpu_to_all_gpus(faiss_index)
+faiss_index.add(all_entity_embeds)
 end_time = time.time()
 runtime = end_time - start_time
 print(f"made index in {runtime}s")
