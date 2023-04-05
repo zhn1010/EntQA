@@ -69,10 +69,15 @@ def tokenize_original_text(raw_data, tokenizer, args):
 
 def load_entities(kb_dir):
     entities = []
+    counter = 0
     with open(os.path.join(kb_dir, "entities_kilt.json")) as f:
         for line in f:
             entities.append(json.loads(line))
-
+            ### To be Removed sooon !!!!!!!! ###
+            counter += 1
+            if counter > 100000:
+                break
+            ######################################
     return entities
 
 
@@ -643,7 +648,7 @@ args = Args(
     "sum_log",
     "sum_log",
     False,
-    False,
+    True,
     use_title=True,
 )
 
