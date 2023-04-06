@@ -709,7 +709,7 @@ args = Args(
     "./models/",
     0.9,
     "./models/reader.pt",
-    100,
+    10,
     "./models/retriever.pt",
     42,
     0.05,
