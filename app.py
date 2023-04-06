@@ -464,37 +464,37 @@ def get_raw_results(
     no_multi_ents=False,
     do_rerank=True,
 ):
-    model.eval()
-    ps = []
-    with torch.no_grad():
-        for _, batch in enumerate(loader):
-            # batch = tuple(t.to(device) for t in batch)
-            batch = tuple(t.to(device, non_blocking=True) for t in batch)
-            if do_rerank:
-                batch_p, rank_logits_b = model(*batch)
-            else:
-                batch_p = model(*batch).detach()
-            ps.append(batch_p)
-        ps = torch.cat(ps, 0).cpu()
-    raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
-    assert len(raw_predicts) == len(samples)
-    return raw_predicts
-
     # model.eval()
     # ps = []
     # with torch.no_grad():
     #     for _, batch in enumerate(loader):
-    #         batch = tuple(t.to(device) for t in batch)
+    #         # batch = tuple(t.to(device) for t in batch)
+    #         batch = tuple(t.to(device, non_blocking=True) for t in batch)
     #         if do_rerank:
     #             batch_p, rank_logits_b = model(*batch)
     #         else:
     #             batch_p = model(*batch).detach()
-    #         batch_p = batch_p.cpu()
     #         ps.append(batch_p)
-    #     ps = torch.cat(ps, 0)
+    #     ps = torch.cat(ps, 0).cpu()
     # raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     # assert len(raw_predicts) == len(samples)
     # return raw_predicts
+
+    model.eval()
+    ps = []
+    with torch.no_grad():
+        for _, batch in enumerate(loader):
+            batch = tuple(t.to(device) for t in batch)
+            if do_rerank:
+                batch_p, rank_logits_b = model(*batch)
+            else:
+                batch_p = model(*batch).detach()
+            batch_p = batch_p.cpu()
+            ps.append(batch_p)
+        ps = torch.cat(ps, 0)
+    raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
+    assert len(raw_predicts) == len(samples)
+    return raw_predicts
 
 
 def transform_predicts(preds, entities, samples):
@@ -664,7 +664,7 @@ print("Loading models ...")
 
 model_loading_start_time = time.time()
 args = Args(
-    5,
+    32,
     100,
     180,
     True,
@@ -686,7 +686,7 @@ args = Args(
     "./models/",
     0.9,
     "./models/reader.pt",
-    32,
+    20,
     "./models/retriever.pt",
     42,
     0.05,
