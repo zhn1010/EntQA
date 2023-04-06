@@ -495,18 +495,19 @@ def get_raw_results(
             end_time = time.time()
             runtime = end_time - start_time
             print(f"batch = tuple(t.to(device) for t in batch) in {runtime}s")
-            start_time = time.time()
+            start_time = time.perf_counter()
             if do_rerank:
                 batch_p, rank_logits_b = model(*batch)
             else:
                 batch_p = model(*batch).detach()
-            end_time = time.time()
+            torch.cuda.synchronize()
+            end_time = time.perf_counter()
             runtime = end_time - start_time
             print(f"model(*batch) in {runtime}s")
-            start_time = time.time()
-            torch.cuda.synchronize()
+            start_time = time.perf_counter()
             batch_p = batch_p.cpu()
-            end_time = time.time()
+            torch.cuda.synchronize()
+            end_time = time.perf_counter()
             runtime = end_time - start_time
             print(f"batch_p.cpu() in {runtime}s")
             ps.append(batch_p)
