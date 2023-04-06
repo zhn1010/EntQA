@@ -67,6 +67,9 @@ def tokenize_original_text(raw_data, tokenizer, args):
     return data, tokenized_raw_data
 
 
+MEMORY_THRESHOLD = 100000
+
+
 def load_entities(kb_dir):
     entities = []
     counter = 0
@@ -75,7 +78,7 @@ def load_entities(kb_dir):
             entities.append(json.loads(line))
             ### To be Removed sooon !!!!!!!! ###
             counter += 1
-            if counter > 100000:
+            if counter > MEMORY_THRESHOLD:
                 break
             ######################################
     return entities
@@ -244,12 +247,12 @@ def get_hard_negative(
 def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    # entity_titles = np.array(list(entity_map.keys()))
+    entity_titles = np.array(list(entity_map.keys()))
     candidates = []
     for i in range(len(samples)):
         sample = samples[i]
         m_candidates = topk_candidates[i].tolist()
-        # candidate_titles = entity_titles[m_candidates]
+        candidate_titles = entity_titles[m_candidates]
         item = {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
@@ -259,7 +262,7 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            # "candidate_titles": candidate_titles.tolist(),
+            "candidate_titles": candidate_titles.tolist(),
         }
         candidates.append(item)
     return candidates
@@ -733,6 +736,9 @@ print(f"retriever_model.eval in {runtime}s")
 
 start_time = time.time()
 all_cands_embeds = np.load(args.cands_embeds_path)
+########## To be Removed sooon !!!!!!!! #############
+all_cands_embeds = all_cands_embeds[:MEMORY_THRESHOLD]
+#####################################################
 end_time = time.time()
 runtime = end_time - start_time
 print(f"np.load(args.cands_embeds_path) in {runtime}s")
