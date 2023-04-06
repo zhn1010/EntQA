@@ -480,6 +480,22 @@ def get_raw_results(
     assert len(raw_predicts) == len(samples)
     return raw_predicts
 
+    # model.eval()
+    # ps = []
+    # with torch.no_grad():
+    #     for _, batch in enumerate(loader):
+    #         batch = tuple(t.to(device) for t in batch)
+    #         if do_rerank:
+    #             batch_p, rank_logits_b = model(*batch)
+    #         else:
+    #             batch_p = model(*batch).detach()
+    #         batch_p = batch_p.cpu()
+    #         ps.append(batch_p)
+    #     ps = torch.cat(ps, 0)
+    # raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
+    # assert len(raw_predicts) == len(samples)
+    # return raw_predicts
+
 
 def transform_predicts(preds, entities, samples):
     #  ent_idx,start,end --> start, end, ent name
@@ -670,7 +686,7 @@ args = Args(
     "./models/",
     0.9,
     "./models/reader.pt",
-    10,
+    32,
     "./models/retriever.pt",
     42,
     0.05,
@@ -836,8 +852,9 @@ def process_text():
     print(f"Retriever ran in {runtime}s")
 
     print("Running reader ...")
-    start_time = time.time()
+    reader_start_time = time.time()
 
+    start_time = time.time()
     loader = get_reader_loaders(
         reader_tokenizer,
         candidates,
@@ -847,6 +864,11 @@ def process_text():
         args.B,
         args.use_title,
     )
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"get_reader_loaders in {runtime}s")
+
+    start_time = time.time()
     raw_predicts = get_raw_results(
         reader_model,
         device,
@@ -857,13 +879,28 @@ def process_text():
         args.no_multi_ents,
         args.do_rerank,
     )
-    pruned_preds = prune_predicts(raw_predicts, args.thresd)
-    predicts = transform_predicts(pruned_preds, entities, candidates)
-    sample_results = get_sample_results(predicts, candidates)  # , args.out_dir)
-    # doc_results = get_sample_docs(sample_results, tokenized_raw_data, entity_map)
-
     end_time = time.time()
     runtime = end_time - start_time
+    print(f"get_raw_results in {runtime}s")
+    start_time = time.time()
+    pruned_preds = prune_predicts(raw_predicts, args.thresd)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"prune_predicts in {runtime}s")
+    start_time = time.time()
+    predicts = transform_predicts(pruned_preds, entities, candidates)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"transform_predicts in {runtime}s")
+    start_time = time.time()
+    sample_results = get_sample_results(predicts, candidates)  # , args.out_dir)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"get_sample_results in {runtime}s")
+    # doc_results = get_sample_docs(sample_results, tokenized_raw_data, entity_map)
+
+    reader_end_time = time.time()
+    runtime = reader_end_time - reader_start_time
     print(f"Reader ran in {runtime}s")
 
     # return jsonify(doc_results)
