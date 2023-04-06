@@ -74,6 +74,7 @@ class Reader(nn.Module):
     ):
         # batchsize, number of candidates per question, length
         B, C, L = input_ids.size()
+        print("batchsize: {B}, number of candidates per question: {C}, length: {L}")
         input_ids = input_ids.view(-1, L)
         attention_mask = attention_mask.view(-1, L)
         token_type_ids = token_type_ids.view(-1, L)
