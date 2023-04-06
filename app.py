@@ -482,8 +482,10 @@ def get_raw_results(
 
     model.eval()
     ps = []
+    num_batches = len(loader) // loader.batch_size
     with torch.no_grad():
-        for _, batch in enumerate(loader):
+        for batch_index, batch in enumerate(loader):
+            print(f"batch_index: {batch_index} of {num_batches}")
             batch = tuple(t.to(device) for t in batch)
             if do_rerank:
                 batch_p, rank_logits_b = model(*batch)
@@ -664,7 +666,7 @@ print("Loading models ...")
 
 model_loading_start_time = time.time()
 args = Args(
-    32,
+    40,
     100,
     180,
     True,
