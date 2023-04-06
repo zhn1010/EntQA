@@ -669,7 +669,7 @@ print("Loading models ...")
 
 model_loading_start_time = time.time()
 args = Args(
-    5,
+    32,
     100,
     180,
     True,
@@ -691,7 +691,7 @@ args = Args(
     "./models/",
     0.9,
     "./models/reader.pt",
-    10,
+    100,
     "./models/retriever.pt",
     42,
     0.05,
