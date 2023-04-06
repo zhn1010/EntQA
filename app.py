@@ -485,7 +485,7 @@ def get_raw_results(
     num_batches = len(samples) // loader.batch_size
     with torch.no_grad():
         for batch_index, batch in enumerate(loader):
-            print(f"batch_index: {batch_index} of {num_batches}")
+            start_time = time.time()
             batch = tuple(t.to(device) for t in batch)
             if do_rerank:
                 batch_p, rank_logits_b = model(*batch)
@@ -493,6 +493,9 @@ def get_raw_results(
                 batch_p = model(*batch).detach()
             batch_p = batch_p.cpu()
             ps.append(batch_p)
+            end_time = time.time()
+            runtime = end_time - start_time
+            print(f"ran batch_index: {batch_index} of {num_batches} in {runtime}s")
         ps = torch.cat(ps, 0)
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     assert len(raw_predicts) == len(samples)
