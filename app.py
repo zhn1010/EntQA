@@ -504,6 +504,7 @@ def get_raw_results(
             runtime = end_time - start_time
             print(f"model(*batch) in {runtime}s")
             start_time = time.time()
+            torch.cuda.synchronize()
             batch_p = batch_p.cpu()
             end_time = time.time()
             runtime = end_time - start_time
