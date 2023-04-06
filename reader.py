@@ -93,15 +93,6 @@ class Reader(nn.Module):
             rank_logits = self.qa_classifier(last_hiddens[:, 0, :]).view(B, C)
         start_logits = start_logits.masked_fill(~(answer_mask.bool()), -10000)
         end_logits = end_logits.masked_fill(~(answer_mask.bool()), -10000)
-        if self.training:
-            start_loss = self.span_loss_fct(start_logits, start_labels)
-            end_loss = self.span_loss_fct(end_logits, end_labels)
-            if self.do_rerank:
-                rank_loss = self.rank_loss_fct(rank_logits, passage_labels)
-                loss = (start_loss + end_loss + rank_loss) / 3
-            else:
-                loss = start_loss + end_loss
-            return loss
         return self.get_batch_probs(start_logits, end_logits, rank_logits)
 
 
