@@ -689,7 +689,7 @@ model_loading_start_time = time.time()
 args = Args(
     40,
     10,
-    180,
+    150,
     True,
     "./models/candidate_embeds.npy",
     "./input/",
