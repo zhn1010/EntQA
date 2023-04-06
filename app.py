@@ -482,7 +482,7 @@ def get_raw_results(
 
     model.eval()
     ps = []
-    num_batches = len(loader) // loader.batch_size
+    num_batches = len(samples) // loader.batch_size
     with torch.no_grad():
         for batch_index, batch in enumerate(loader):
             print(f"batch_index: {batch_index} of {num_batches}")
