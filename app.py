@@ -687,7 +687,7 @@ print("Loading models ...")
 
 model_loading_start_time = time.time()
 args = Args(
-    32,
+    5,
     100,
     180,
     True,
