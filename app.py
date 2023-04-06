@@ -721,7 +721,7 @@ args = Args(
     "sum_log",
     "sum_log",
     False,
-    True,
+    False,
     use_title=True,
 )
 
