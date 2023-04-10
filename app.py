@@ -234,9 +234,6 @@ def get_hard_negative(
     max_num_postives,
 ):
     start_time = time.time()
-
-    print(f"creating faiss index in {runtime}s")
-    start_time = time.time()
     scores, hard_indices = index.search(mention_embeddings, k + max_num_postives)
     end_time = time.time()
     runtime = end_time - start_time
@@ -854,12 +851,14 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"get_embeddings in {runtime}s")
+    start_time = time.time()
     index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
     if args.use_gpu_index:
         index = faiss.index_cpu_to_all_gpus(index)
     index.add(all_cands_embeds)
     end_time = time.time()
     runtime = end_time - start_time
+    print(f"creating faiss index in {runtime}s")
     start_time = time.time()
     topk_candidates = get_hard_negative(
         test_mention_embeds,
