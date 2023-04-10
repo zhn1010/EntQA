@@ -74,7 +74,7 @@ MEMORY_THRESHOLD = 2000000
 def load_entities(kb_dir):
     df = pd.read_feather(os.path.join(kb_dir, "entities_kilt.feather"))
     ### To be Removed sooon !!!!!!!! ###
-    df = df[:MEMORY_THRESHOLD]
+    # df = df[:MEMORY_THRESHOLD]
     ######################################
     entities = df.to_dict(orient="records")
     return entities
@@ -710,7 +710,7 @@ args = Args(
     "sum_log",
     "sum_log",
     False,
-    True,
+    False,
     use_title=True,
 )
 
@@ -768,7 +768,7 @@ print(f"retriever_model.eval in {runtime}s")
 start_time = time.time()
 all_cands_embeds = np.load(args.cands_embeds_path)
 ########## To be Removed sooon !!!!!!!! #############
-all_cands_embeds = all_cands_embeds[:MEMORY_THRESHOLD]
+# all_cands_embeds = all_cands_embeds[:MEMORY_THRESHOLD]
 #####################################################
 end_time = time.time()
 runtime = end_time - start_time
