@@ -877,6 +877,9 @@ def process_text():
     runtime = retriever_end_time - retriever_start_time
     print(f"Retriever ran in {runtime}s")
 
+    return jsonify(candidates)
+
+    """
     print("Running reader ...")
     reader_start_time = time.time()
 
@@ -930,7 +933,7 @@ def process_text():
     print(f"Reader ran in {runtime}s")
 
     return jsonify(doc_results)
-    # return jsonify(sample_results)
+    """
 
 
 # --------------------------- Run the Flask app --------------------------- #
