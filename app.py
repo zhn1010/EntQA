@@ -240,24 +240,20 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
     entity_titles = np.array(list(entity_map.keys()))
-    candidates = []
-    for i in range(len(samples)):
-        sample = samples[i]
-        m_candidates = topk_candidates[i].tolist()
-        candidate_titles = entity_titles[m_candidates]
-        item = {
+    return [
+        {
             "doc_id": sample["doc_id"],
             "mention_idx": i,
             "offset": sample["offset"],
-            "candidates": m_candidates,
+            "candidates": topk_candidates[i].tolist(),
             "title_ids": sample["title"],
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": candidate_titles.tolist(),
+            "candidate_titles": entity_titles[topk_candidates[i]].tolist(),
         }
-        candidates.append(item)
-    return candidates
+        for i, sample in enumerate(samples)
+    ]
 
 
 # --------------------------------- READER -------------------------------------#
