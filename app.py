@@ -227,15 +227,14 @@ def get_embeddings(loader, model, is_sample, device):
 
 
 def get_hard_negative(
-    mention_embeddings, all_entity_embeds, k, max_num_postives, use_gpu_index=False
+    # mention_embeddings, all_entity_embeds, k, max_num_postives, use_gpu_index=False
+    mention_embeddings,
+    index,
+    k,
+    max_num_postives,
 ):
     start_time = time.time()
-    index = faiss.IndexFlatIP(all_entity_embeds.shape[1])
-    if use_gpu_index:
-        index = faiss.index_cpu_to_all_gpus(index)
-    index.add(all_entity_embeds)
-    end_time = time.time()
-    runtime = end_time - start_time
+
     print(f"creating faiss index in {runtime}s")
     start_time = time.time()
     scores, hard_indices = index.search(mention_embeddings, k + max_num_postives)
@@ -855,13 +854,18 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"get_embeddings in {runtime}s")
+    index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
+    if args.use_gpu_index:
+        index = faiss.index_cpu_to_all_gpus(index)
+    index.add(all_cands_embeds)
+    end_time = time.time()
+    runtime = end_time - start_time
     start_time = time.time()
     topk_candidates = get_hard_negative(
         test_mention_embeds,
         all_cands_embeds,
         args.retriever_recall_at_k,
         0,
-        args.use_gpu_index,
     )
     end_time = time.time()
     runtime = end_time - start_time
