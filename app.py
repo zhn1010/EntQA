@@ -814,6 +814,16 @@ print(f"reader_model.eval in {runtime}s")
 model_loading_end_time = time.time()
 
 runtime = model_loading_end_time - model_loading_start_time
+
+start_time = time.time()
+index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
+if args.use_gpu_index:
+    index = faiss.index_cpu_to_all_gpus(index)
+index.add(all_cands_embeds)
+end_time = time.time()
+runtime = end_time - start_time
+print(f"creating faiss index in {runtime}s")
+
 print(f"Models are loaded in {runtime}s")
 
 # --------------------------- Define API route --------------------------- #
@@ -851,14 +861,6 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"get_embeddings in {runtime}s")
-    start_time = time.time()
-    index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
-    if args.use_gpu_index:
-        index = faiss.index_cpu_to_all_gpus(index)
-    index.add(all_cands_embeds)
-    end_time = time.time()
-    runtime = end_time - start_time
-    print(f"creating faiss index in {runtime}s")
     start_time = time.time()
     topk_candidates = get_hard_negative(
         test_mention_embeds,
