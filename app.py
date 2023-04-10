@@ -862,7 +862,7 @@ def process_text():
     start_time = time.time()
     topk_candidates = get_hard_negative(
         test_mention_embeds,
-        all_cands_embeds,
+        index,
         args.retriever_recall_at_k,
         0,
     )
