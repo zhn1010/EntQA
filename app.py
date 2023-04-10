@@ -236,10 +236,9 @@ def get_hard_negative(
     return hard_indices  # , scores
 
 
-def prepare_candidates(tokenizer, samples, topk_candidates, entity_map):
+def prepare_candidates(tokenizer, samples, topk_candidates, entity_titles):
     # save results for reader training
     assert len(samples) == len(topk_candidates)
-    entity_titles = np.array(list(entity_map.keys()))
     return [
         {
             "doc_id": sample["doc_id"],
@@ -722,6 +721,7 @@ print(f"load_entities in {runtime}s")
 
 start_time = time.time()
 entity_map = get_entity_map(entities)
+entity_titles = np.array(list(entity_map.keys()))
 end_time = time.time()
 runtime = end_time - start_time
 print(f"entity_map in {runtime}s")
@@ -800,16 +800,15 @@ reader_model.eval()
 end_time = time.time()
 runtime = end_time - start_time
 print(f"reader_model.eval in {runtime}s")
-model_loading_end_time = time.time()
-
-runtime = model_loading_end_time - model_loading_start_time
 
 start_time = time.time()
 index = faiss.read_index(args.pretrained_path + "index.ivf")
 end_time = time.time()
 runtime = end_time - start_time
-print(f"creating faiss index in {runtime}s")
+print(f"loading faiss index in {runtime}s")
 
+model_loading_end_time = time.time()
+runtime = model_loading_end_time - model_loading_start_time
 print(f"Models are loaded in {runtime}s")
 
 # --------------------------- Define API route --------------------------- #
@@ -859,7 +858,7 @@ def process_text():
     print(f"get_hard_negative in {runtime}s")
     start_time = time.time()
     candidates = prepare_candidates(
-        retriever_tokenizer, tokenized_samples, topk_candidates, entity_map
+        retriever_tokenizer, tokenized_samples, topk_candidates, entity_titles
     )
     end_time = time.time()
     runtime = end_time - start_time
