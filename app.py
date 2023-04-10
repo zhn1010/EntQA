@@ -571,10 +571,10 @@ def get_sample_docs(sample_results, tokenized_raw_data, entity_map):
             grouped_tuple_list[doc_id].append(
                 (begin, end, entity_title, count, entity_map[entity_title], entity_text)
             )
-    assert len(tokenized_raw_data) == len(grouped_tuple_list)
     print(
         f"len(tokenized_raw_data): {len(tokenized_raw_data)}, len(grouped_tuple_list): {len(grouped_tuple_list)}"
     )
+    assert len(tokenized_raw_data) == len(grouped_tuple_list)
     return grouped_tuple_list
 
 
