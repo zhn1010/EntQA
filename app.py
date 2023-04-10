@@ -68,7 +68,7 @@ def tokenize_original_text(raw_data, tokenizer, args):
     return data, tokenized_raw_data
 
 
-MEMORY_THRESHOLD = 3000000
+MEMORY_THRESHOLD = 2000000
 
 
 def load_entities(kb_dir):
@@ -231,8 +231,8 @@ def get_hard_negative(
     end_time = time.time()
     runtime = end_time - start_time
     print(f"index.search in {runtime}s")
-    del mention_embeddings
-    del index
+    # del mention_embeddings
+    # del index
     return hard_indices  # , scores
 
 
@@ -809,10 +809,7 @@ model_loading_end_time = time.time()
 runtime = model_loading_end_time - model_loading_start_time
 
 start_time = time.time()
-index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
-if args.use_gpu_index:
-    index = faiss.index_cpu_to_all_gpus(index)
-index.add(all_cands_embeds)
+index = faiss.read_index(args.pretrained_path + "index.ivf")
 end_time = time.time()
 runtime = end_time - start_time
 print(f"creating faiss index in {runtime}s")
