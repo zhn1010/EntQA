@@ -68,7 +68,7 @@ def tokenize_original_text(raw_data, tokenizer, args):
     return data, tokenized_raw_data
 
 
-MEMORY_THRESHOLD = 1000000
+MEMORY_THRESHOLD = 3000000
 
 
 def load_entities(kb_dir):
