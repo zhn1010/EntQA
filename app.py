@@ -428,6 +428,7 @@ def get_reader_loaders(
     bsz,
     use_title,
 ):
+    start_time = time.time()
     samples_set = ReaderData(
         tokenizer,
         samples,
@@ -437,7 +438,14 @@ def get_reader_loaders(
         False,
         use_title,
     )
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"ran ReaderData in {runtime}s")
+    start_time = time.time()
     loader = make_single_loader(samples_set, bsz, False)
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"make_single_loader in {runtime}s")
     return loader
 
 
@@ -564,6 +572,9 @@ def get_sample_docs(sample_results, tokenized_raw_data, entity_map):
                 (begin, end, entity_title, count, entity_map[entity_title], entity_text)
             )
     assert len(tokenized_raw_data) == len(grouped_tuple_list)
+    print(
+        f"len(tokenized_raw_data): {len(tokenized_raw_data)}, len(grouped_tuple_list): {len(grouped_tuple_list)}"
+    )
     return grouped_tuple_list
 
 
