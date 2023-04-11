@@ -652,7 +652,7 @@ print("Loading models ...")
 model_loading_start_time = time.time()
 args = Args(
     40,
-    64,
+    30,
     180,
     True,
     "./models/candidate_embeds.npy",
