@@ -249,9 +249,9 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_titles):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": entity_titles[topk_candidates[i]].tolist()
-            if len(entity_titles) < topk_candidates[i]
-            else "error",
+            # "candidate_titles": entity_titles[topk_candidates[i]].tolist()
+            # if len(entity_titles) < topk_candidates[i]
+            # else "error",
         }
         for i, sample in enumerate(samples)
     ]
