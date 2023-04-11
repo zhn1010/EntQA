@@ -340,7 +340,8 @@ class ReaderData(Dataset):
         self,
         tokenizer,
         samples,
-        entities,
+        all_entity_token_ids,
+        all_entity_masks,
         max_len,
         max_num_candidates,
         is_training,
@@ -350,16 +351,8 @@ class ReaderData(Dataset):
         self.is_training = is_training
         self.samples = samples
         self.entities = entities
-        start_time = time.time()
-        self.all_entity_token_ids = np.array([e["text_ids"] for e in entities])
-        end_time = time.time()
-        runtime = end_time - start_time
-        print(f"ran self.all_entity_token_ids in {runtime}s")
-        start_time = time.time()
-        self.all_entity_masks = np.array([e["text_masks"] for e in entities])
-        end_time = time.time()
-        runtime = end_time - start_time
-        print(f"ran self.all_entity_masks in {runtime}s")
+        self.all_entity_token_ids = all_entity_token_ids
+        self.all_entity_masks = all_entity_masks
         self.max_len = max_len
         self.max_num_candidates = max_num_candidates
         self.use_title = use_title
@@ -430,7 +423,8 @@ def make_single_loader(data_set, bsz, shuffle):
 def get_reader_loaders(
     tokenizer,
     samples,
-    entities,
+    all_entity_token_ids,
+    all_entity_masks,
     max_len,
     max_num_candidates,
     bsz,
@@ -440,7 +434,8 @@ def get_reader_loaders(
     samples_set = ReaderData(
         tokenizer,
         samples,
-        entities,
+        all_entity_token_ids,
+        all_entity_masks,
         max_len,
         max_num_candidates,
         False,
@@ -571,7 +566,7 @@ def get_sample_docs(sample_results, tokenized_raw_data, entity_map):
     counted = Counter(tuple_list)
     grouped_tuple_list = defaultdict(list)
     for element, count in counted.items():
-        if count > 1:
+        if count > 0:
             doc_id, begin, end, entity_title = element
             entity_text = " ".join(
                 tokenized_raw_data[doc_id]["tokenized_text"][begin - 1 : end]
@@ -826,6 +821,18 @@ end_time = time.time()
 runtime = end_time - start_time
 print(f"loading faiss index in {runtime}s")
 
+start_time = time.time()
+all_entity_token_ids = np.array([e["text_ids"] for e in entities])
+end_time = time.time()
+runtime = end_time - start_time
+print(f"ran self.all_entity_token_ids in {runtime}s")
+
+start_time = time.time()
+all_entity_masks = np.array([e["text_masks"] for e in entities])
+end_time = time.time()
+runtime = end_time - start_time
+print(f"ran self.all_entity_masks in {runtime}s")
+
 model_loading_end_time = time.time()
 runtime = model_loading_end_time - model_loading_start_time
 print(f"Models are loaded in {runtime}s")
@@ -893,7 +900,8 @@ def process_text():
     loader = get_reader_loaders(
         reader_tokenizer,
         candidates,
-        entities,
+        all_entity_token_ids,
+        all_entity_masks,
         args.L,
         args.C,
         args.B,
