@@ -889,14 +889,14 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"get_raw_results in {runtime}s")
-
-    return jsonify(raw_predicts)
-
     start_time = time.time()
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     end_time = time.time()
     runtime = end_time - start_time
     print(f"prune_predicts in {runtime}s")
+
+    return jsonify(pruned_preds)
+
     start_time = time.time()
     predicts = transform_predicts(pruned_preds, entities, candidates)
     end_time = time.time()
