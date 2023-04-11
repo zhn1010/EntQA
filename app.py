@@ -350,8 +350,16 @@ class ReaderData(Dataset):
         self.is_training = is_training
         self.samples = samples
         self.entities = entities
+        start_time = time.time()
         self.all_entity_token_ids = np.array([e["text_ids"] for e in entities])
+        end_time = time.time()
+        runtime = end_time - start_time
+        print(f"ran self.all_entity_token_ids in {runtime}s")
+        start_time = time.time()
         self.all_entity_masks = np.array([e["text_masks"] for e in entities])
+        end_time = time.time()
+        runtime = end_time - start_time
+        print(f"ran self.all_entity_masks in {runtime}s")
         self.max_len = max_len
         self.max_num_candidates = max_num_candidates
         self.use_title = use_title
