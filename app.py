@@ -462,56 +462,19 @@ def get_raw_results(
     no_multi_ents=False,
     do_rerank=True,
 ):
-    # model.eval()
-    # ps = []
-    # num_batches = len(samples) // loader.batch_size
-    # with torch.no_grad():
-    #     for batch_index, batch in enumerate(loader):
-    #         # batch = tuple(t.to(device) for t in batch)
-    #         batch = tuple(t.to(device, non_blocking=True) for t in batch)
-    #         if do_rerank:
-    #             batch_p, rank_logits_b = model(*batch)
-    #         else:
-    #             batch_p = model(*batch).detach()
-    #         ps.append(batch_p)
-    #         end_time = time.time()
-    #         runtime = end_time - start_time
-    #         print(f"ran batch_index: {batch_index} of {num_batches} in {runtime}s")
-    #     ps = torch.cat(ps, 0).cpu()
-    # raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
-    # assert len(raw_predicts) == len(samples)
-    # return raw_predicts
-
     model.eval()
     ps = []
-    num_batches = len(samples) // loader.batch_size
     with torch.no_grad():
         for batch_index, batch in enumerate(loader):
-            batch_start_time = time.time()
-            start_time = time.time()
             batch = tuple(t.to(device) for t in batch)
-            end_time = time.time()
-            runtime = end_time - start_time
-            print(f"batch = tuple(t.to(device) for t in batch) in {runtime}s")
-            start_time = time.perf_counter()
             if do_rerank:
                 batch_p, rank_logits_b = model(*batch)
             else:
                 batch_p = model(*batch).detach()
             torch.cuda.synchronize()
-            end_time = time.perf_counter()
-            runtime = end_time - start_time
-            print(f"model(*batch) in {runtime}s")
-            start_time = time.perf_counter()
             batch_p = batch_p.cpu()
             torch.cuda.synchronize()
-            end_time = time.perf_counter()
-            runtime = end_time - start_time
-            print(f"batch_p.cpu() in {runtime}s")
             ps.append(batch_p)
-            batch_end_time = time.time()
-            runtime = batch_end_time - batch_start_time
-            print(f"ran batch_index: {batch_index} of {num_batches} in {runtime}s")
         ps = torch.cat(ps, 0)
     raw_predicts = get_predicts(ps, k, filter_span, no_multi_ents)
     assert len(raw_predicts) == len(samples)
@@ -925,6 +888,9 @@ def process_text():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"get_raw_results in {runtime}s")
+
+    return jsonify(raw_predicts)
+
     start_time = time.time()
     pruned_preds = prune_predicts(raw_predicts, args.thresd)
     end_time = time.time()
