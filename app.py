@@ -695,6 +695,7 @@ entities = load_entities(args.kb_dir)
 end_time = time.time()
 runtime = end_time - start_time
 print(f"load_entities in {runtime}s")
+print(f"LENGTH OF ENTITIES: {len(entities)}s")
 
 start_time = time.time()
 entity_map = get_entity_map(entities)
