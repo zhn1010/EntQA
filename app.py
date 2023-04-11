@@ -849,6 +849,7 @@ def process_text():
     )
     end_time = time.time()
     runtime = end_time - start_time
+    return jsonify(topk_candidates)
     print(f"get_hard_negative in {runtime}s")
     start_time = time.time()
     candidates = prepare_candidates(
