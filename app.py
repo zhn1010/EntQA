@@ -249,7 +249,9 @@ def prepare_candidates(tokenizer, samples, topk_candidates, entity_titles):
             "token_ids": sample["text"],
             "title_text": tokenizer.decode(sample["title"]),
             "token_text": tokenizer.decode(sample["text"]),
-            "candidate_titles": entity_titles[topk_candidates[i]].tolist(),
+            "candidate_titles": entity_titles[topk_candidates[i]].tolist()
+            if len(entity_titles) < topk_candidates[i]
+            else "error",
         }
         for i, sample in enumerate(samples)
     ]
@@ -849,9 +851,8 @@ def process_text():
     )
     end_time = time.time()
     runtime = end_time - start_time
-    print("topk_candidates")
-    print(topk_candidates)
-    return 0
+    with open("topk_candidates.npy", "wb") as f:
+        np.save(f, topk_candidates)
     print(f"get_hard_negative in {runtime}s")
     start_time = time.time()
     candidates = prepare_candidates(
