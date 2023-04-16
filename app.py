@@ -68,11 +68,11 @@ def tokenize_original_text(raw_data, tokenizer, args):
     return data, tokenized_raw_data
 
 
-MEMORY_THRESHOLD = 2000000
+# MEMORY_THRESHOLD = 2000000
 
 
 def load_entities(kb_dir):
-    df = pd.read_feather(os.path.join(kb_dir, "entities_kilt.feather"))
+    df = pd.read_feather(os.path.join(kb_dir, "entities_kilt_filtered.feather"))
     ### To be Removed sooon !!!!!!!! ###
     # df = df[:MEMORY_THRESHOLD]
     ######################################
@@ -657,7 +657,7 @@ args = Args(
     10,
     120,
     True,
-    "./models/candidate_embeds.npy",
+    "./models/candidate_embeds_filtered.npy",
     "./input/",
     True,
     4096,
