@@ -782,11 +782,11 @@ runtime = end_time - start_time
 print(f"reader_model.eval in {runtime}s")
 
 start_time = time.time()
-index = faiss.read_index(args.pretrained_path + "index_15links.hnsw")
-# index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
-# if args.use_gpu_index:
-#     index = faiss.index_cpu_to_all_gpus(index)
-# index.add(all_cands_embeds)
+# index = faiss.read_index(args.pretrained_path + "index_15links.hnsw")
+index = faiss.IndexFlatIP(all_cands_embeds.shape[1])
+if args.use_gpu_index:
+    index = faiss.index_cpu_to_all_gpus(index)
+index.add(all_cands_embeds)
 end_time = time.time()
 runtime = end_time - start_time
 print(f"loading faiss index in {runtime}s")
