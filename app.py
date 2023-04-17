@@ -1,20 +1,14 @@
 from flask import Flask, request, jsonify
 import torch
-import numpy as np
 import math
 import os
 import json
-import argparse
 from retriever import DualEncoder
-from datetime import datetime
-from collections import OrderedDict
-from utils import Logger
 from transformers import BertTokenizer, BertModel, ElectraModel, ElectraTokenizer
 from reader import Reader, get_predicts, prune_predicts
 from torch.utils.data import DataLoader, Dataset
 import random
 import torch.nn as nn
-import torch
 import numpy as np
 import faiss
 from collections import Counter, defaultdict
