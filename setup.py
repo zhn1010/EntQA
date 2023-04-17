@@ -1,9 +1,8 @@
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
 
-# Parse requirements.txt and extract the dependencies
-install_reqs = parse_requirements("requirements.txt", session=False)
-requirements = [str(req.req) for req in install_reqs]
+with open("requirements.txt") as fh:
+    requirements = [l.strip() for l in fh]
+
 
 setup(
     name="entqa",
