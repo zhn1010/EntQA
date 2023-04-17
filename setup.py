@@ -8,5 +8,8 @@ setup(
     name="entqa",
     version="1.0.0",
     packages=find_packages(),
+    setup_requires=[
+        "setuptools>=18.0",
+    ],
     install_requires=requirements,
 )
