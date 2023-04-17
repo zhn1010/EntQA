@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import torch.nn as nn
-from loss import MultiLabelLoss
+from entqa.loss import MultiLabelLoss
 
 
 # Reader model
